@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/home/adam/bin/startupSession --all

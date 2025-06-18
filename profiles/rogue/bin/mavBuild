@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ENCORE_DEBUG=/home/adam/builds/encore/debug
+cd $ENCORE_DEBUG
+make -j26
+
+PLATINUM_DEBUG=/home/adam/builds/platinum/debug
+cd $PLATINUM_DEBUG
+make -j26
+
+ELITE_DEBUG=/home/adam/builds/elite/debug
+cd $ELITE_DEBUG
+make -j26

@@ -1,0 +1,188 @@
+#!/bin/bash
+
+NEXT_DESKTOP=0
+NEXT_INDEX=0
+WINDOWS=()
+SLEEP_DUR=3
+
+set_window() {
+
+  window_id=0
+  targ="tradingview"
+  if [ "$2" = "$targ" ]; then
+    pid=$(pgrep tradingview | head -n 1)
+    window_id=$(xdotool search --onlyvisible --pid $pid | head -n 1)
+  else
+    window_id=$(xdotool search --onlyvisible --name $2 | head -n 1)
+  fi
+
+  desktop=$1
+  x=$3
+  y=$4
+  w=$5
+  h=$6
+
+  echo "window_id: $window_id, desktop: $desktop, x: $x, y: $y, w: $w, h: $h"
+
+  # function args assumes window has no size at coords 0,0
+  xdotool windowmove $window_id 0 0
+  xdotool windowsize $window_id 0 0
+
+  xdotool windowmove $window_id $x $y
+  xdotool windowsize $window_id $w $h
+
+  xdotool set_desktop_for_window $window_id $desktop
+}
+
+### BASE STARTUP ###
+base() {
+  # wmctrl -s 0
+  dest=$NEXT_DESKTOP
+
+  declare -a urls=(
+  "https://open.spotify.com/"
+  "https://messages.google.com/web/conversations"
+  "https://gmail.com/"
+  "https://roguegamingstudio.com:8443/bugzilla/"
+  )
+
+  name="dashboard"
+  google-chrome --window-name=$name --new-window ${urls[@]} &
+  WINDOWS[$NEXT_INDEX]="$dest $name 2160 86 1646 1935"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  discord &
+  WINDOWS[$NEXT_INDEX]="$dest Discord 800 600 1985 1496"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  skypeforlinux &
+  WINDOWS[$NEXT_INDEX]="$dest Skype 0 0 1867 1734"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  xfce4-terminal -T "DEFAULT_TERM" &
+
+  NEXT_DESKTOP=$((NEXT_DESKTOP+1))
+  # sleep $SLEEP_DUR
+}
+
+project() {
+  # lastWindow=`wmctrl -l | awk 'BEGIN{a=   0}{if ($2>0+a) a=$2} END{print a}'`
+  # dest=$(($lastWindow+1))
+  # wmctrl -s $dest
+  dest=$NEXT_DESKTOP
+
+  PROJECT_NAME=$1
+  xfce4-terminal \
+      --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+      -e 'bash -c "code .; zsh"' -T "xfce_${PROJECT_NAME}" &
+
+  WINDOWS[$NEXT_INDEX]="$dest $PROJECT_NAME 0 0 2000 2000"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  WINDOWS[$NEXT_INDEX]="$dest xfce_${PROJECT_NAME} 2631 191 1094 1229"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  NEXT_DESKTOP=$((NEXT_DESKTOP+1))
+  # give them a chance to wake up before moving
+  # sleep $SLEEP_DUR
+}
+
+### PERSONAL STARTUP ###
+personal() {
+  # lastWindow=`wmctrl -l | awk 'BEGIN{a=   0}{if ($2>0+a) a=$2} END{print a}'`
+  # dest=$(($lastWindow+1))
+  dest=$NEXT_DESKTOP
+
+  urls=(
+  "https://onlineaccess.edwardjones.com/app/oa-login"
+  "https://robinhood.com"
+  "https://www.coinbase.com/assets"
+  "https://pro.kraken.com/app/portfolio/overview"
+  "https://twitter.com/"
+  )
+
+  name="finance"
+  google-chrome --window-name=$name --new-window ${urls[@]} &
+  WINDOWS[$NEXT_INDEX]="$dest $name 100 50 2137 1855"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  tradingview &
+  WINDOWS[$NEXT_INDEX]="$dest tradingview 350 200 3337 1855"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  NEXT_DESKTOP=$((NEXT_DESKTOP+1))
+  # sleep $SLEEP_DUR
+}
+
+veldus() {
+  lastWindow=`wmctrl -l | awk 'BEGIN{a=   0}{if ($2>0+a) a=$2} END{print a}'`
+  dest=$(($lastWindow+1))
+
+  urls=(
+  "http://map.veldus.net/?burg=Phandalin"
+  "http://localhost:5050"
+  "http://localhost:4242"
+  )
+
+  name="veldus"
+  google-chrome --window-name=$name --new-window ${urls[@]} &
+  WINDOWS[$NEXT_INDEX]="$dest $name 100 50 2137 1855"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  PROJECT_NAME="veldus"
+  xfce4-terminal \
+      --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+      -e 'bash -c "code .; zsh"' -T "xfce_${PROJECT_NAME}" &
+
+  WINDOWS[$NEXT_INDEX]="$dest $PROJECT_NAME 0 0 2000 2000"
+  NEXT_INDEX=$((NEXT_INDEX+1))
+
+  NEXT_DESKTOP=$((dest+1))
+}
+
+set_windows() {
+  for (( i=0; i<${NEXT_INDEX}; i++ ))
+  do
+    set_window ${WINDOWS[$i]}
+  done
+}
+
+### MAIN SCRIPT ###
+main() {
+  for flag in "$1"
+  do
+      case $flag in
+        --all)
+          base
+          project "maverick"
+          # project "TP_Tier1"
+          personal
+          ;;
+        --base)
+          base
+          ;;
+        --maverick)
+          project "maverick"
+          ;;
+        --cms)
+          project "TP_Tier1"
+          ;;
+        --personal)
+          personal
+          ;;
+        --veldus)
+          veldus
+          ;;
+        *)
+          echo "UNKNOWN STARTUP REQUEST: $1"
+          ;;
+      esac
+  done
+
+  # give everything a chance to wake up
+  sleep $SLEEP_DUR
+  set_windows
+}
+
+# Start the script
+main $@

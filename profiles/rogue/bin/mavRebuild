@@ -1,0 +1,149 @@
+#!/bin/sh
+
+PLATFORM=''
+
+if [ -z "$1" ]; then
+    echo 'Missing arg, choose (1): --elite or --platinum or --encore'
+    exit 0
+fi
+
+if [ "$1" = '--elite' ]; then
+    PLATFORM=elite
+fi
+
+if [ "$1" = '--platinum' ]; then
+    PLATFORM=platinum
+fi
+
+if [ "$1" = "--encore" ]; then
+    PLATFORM=encore
+fi
+
+if [ "$PLATFORM" = "" ]; then
+    echo 'OH NO, something went wrong. Abort!'
+    exit 0
+fi
+
+echo $PLATFORM
+
+RM_DIR=''
+if [ "$2" = "--rm" ]; then
+    RM_DIR='rm'
+fi
+
+SOURCE_DIR=$HOME/src/maverick
+BUILD_DIR=$HOME/builds/$PLATFORM/debug
+INSTALL_DIR=$HOME/builds/$PLATFORM/install
+
+# cd ~/builds/debug/platinum
+cd $BUILD_DIR
+
+if [ "$RM_DIR" = "rm" ]; then
+    # rm -rf ~/builds/debug/platinum/*
+    # rm -rf ~/builds/platinum_install/*
+    rm -rf $BUILD_DIR/*
+    rm -rf $INSTALL_DIR/*
+fi
+
+if [ "$PLATFORM" = "elite" ]; then
+
+    ccmake \
+        -S $SOURCE_DIR \
+        -B $BUILD_DIR \
+        -D CMAKE_INSTALL_PREFIX:PATH=$INSTALL_DIR \
+        -D CMAKE_BUILD_TYPE=Debug \
+        -D GAME_DiamondCharmReel=ON \
+        -D GAME_PandaCoveKeno=ON \
+        -D LOG_ENABLE=ON \
+        -D MAVERICK_TARGET_PLATFORM=$PLATFORM \
+        -D MAVERICK_AUTHORIZE_ALL_GAMES=ON \
+        -D MAVERICK_DEMO=ON \
+        -D MAVERICK_HARD_BUTTON_PLAY_THROUGH=ON \
+        -D MAVERICK_PLAYBACK_CONTROLS=ON
+
+fi
+
+if [ "$PLATFORM" = "platinum" ]; then
+
+    ccmake \
+        -S $SOURCE_DIR \
+        -B $BUILD_DIR \
+        -D CMAKE_INSTALL_PREFIX:PATH=$INSTALL_DIR \
+        -D CMAKE_BUILD_TYPE=Debug \
+        -D GAME_BigBigPaysMegaDeluxeKeno=OFF \
+        -D GAME_ClassicKeno=OFF \
+        -D GAME_DavinciExtremeReel=OFF \
+        -D GAME_FiveAlarmReel=ON \
+        -D GAME_HeidisBierHausReel=OFF \
+        -D GAME_LeprechaunsGoldRainbowBayReel=OFF \
+        -D GAME_MatterhornKeno=OFF \
+        -D GAME_MiamiHeistKeno=OFF \
+        -D GAME_MoneyStreakPoker=OFF \
+        -D GAME_MonsterMayhemKeno=OFF \
+        -D GAME_PickYourPleasureKeno=ON \
+        -D GAME_PickYourPleasureReel=ON \
+        -D GAME_PlatinumAcesPoker=OFF \
+        -D GAME_PowerKeno=OFF \
+        -D GAME_RainingDiamondsKeno=ON \
+        -D GAME_SevensKeno=OFF \
+        -D GAME_TNTDrawKeno=OFF \
+        -D GAME_ToysDeluxeKeno=ON \
+        -D GAME_ZeusUnleashedReel=ON \
+        -D LOG_ENABLE=ON \
+        -D MAVERICK_TARGET_PLATFORM=$PLATFORM \
+        -D MAVERICK_AUTHORIZE_ALL_GAMES=ON \
+        -D MAVERICK_DEMO=ON \
+        -D MAVERICK_HARD_BUTTON_PLAY_THROUGH=ON \
+        -D MAVERICK_PLAYBACK_CONTROLS=ON
+
+fi
+
+if [ "$PLATFORM" = "encore" ]; then
+
+    ccmake \
+        -S $SOURCE_DIR \
+        -B $BUILD_DIR \
+        -D CMAKE_INSTALL_PREFIX:PATH=$INSTALL_DIR \
+        -D CMAKE_BUILD_TYPE=Debug \
+        -D GAME_BigBigDoubleRainbowReel=OFF \
+        -D GAME_BigBigPaysKeno=OFF \
+        -D GAME_BigBigPaysPoker=OFF \
+        -D GAME_BigBigPaysReel=OFF \
+        -D GAME_BigEasyAcesPoker=OFF \
+        -D GAME_BillsDeluxeKeno=OFF \
+        -D GAME_BlingBlingKeno=OFF \
+        -D GAME_BonusPoker=OFF \
+        -D GAME_CabaretKeno=OFF \
+        -D GAME_ChiliChiliFireReel=OFF \
+        -D GAME_ChillyWinningsKeno=OFF \
+        -D GAME_DavinciWaysReel=OFF \
+        -D GAME_DeucesWildPoker=OFF \
+        -D GAME_DragonsLawTwinFeverReel=ON \
+        -D GAME_FourSeasonsKeno=OFF \
+        -D GAME_FreeWheelinKeno=OFF \
+        -D GAME_GeniesTreasureKeno=OFF \
+        -D GAME_GoldFish3Reel=OFF \
+        -D GAME_GoldenNileKeno=OFF \
+        -D GAME_HotPepperPartyKeno=OFF \
+        -D GAME_HotStreakKeno=OFF \
+        -D GAME_IScreamReel=OFF \
+        -D GAME_KangaboomKeno=OFF \
+        -D GAME_LilRedReel=OFF \
+        -D GAME_LilsFrontierKeno=OFF \
+        -D GAME_MysteryCubeKeno=OFF \
+        -D GAME_MysticalForestKeno=OFF \
+        -D GAME_OlesGoneBerzerkKeno=ON \
+        -D GAME_PickYourPleasureKeno=OFF \
+        -D GAME_SpeakeasyKeno=OFF \
+        -D GAME_SunfirePowerKeno=OFF \
+        -D GAME_SuperClassicKeno=OFF \
+        -D GAME_WahooKeno=ON \
+        -D GAME_WonderRoseReel=OFF \
+        -D LOG_ENABLE=ON \
+        -D MAVERICK_TARGET_PLATFORM=$PLATFORM \
+        -D MAVERICK_AUTHORIZE_ALL_GAMES=ON \
+        -D MAVERICK_DEMO=ON \
+        -D MAVERICK_HARD_BUTTON_PLAY_THROUGH=ON \
+        -D MAVERICK_PLAYBACK_CONTROLS=ON
+
+fi

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+MAV_DEBUG=/home/adam/builds/debug
+cd $MAV_DEBUG
+$MAV_DEBUG/maverick

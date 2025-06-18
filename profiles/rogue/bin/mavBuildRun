@@ -1,0 +1,4 @@
+#!/bin/bash
+
+$HOME/bin/mavBuild
+$HOME/bin/mavRun

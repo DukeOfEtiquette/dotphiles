@@ -1,0 +1,15 @@
+#!/bin/sh
+
+SCHEME="file:/"
+BG_PATH="$HOME/backgrounds"
+
+curr_bg=$(gsettings get org.gnome.desktop.background picture-uri)
+file_name=$(basename ${curr_bg})
+file_name=${file_name%?}
+
+FILE="chart_patterns.jpeg"
+if [ "$file_name" = "$FILE" ]; then
+  gsettings set org.gnome.desktop.background picture-uri "$SCHEME/$BG_PATH/default.jpg"
+else
+  gsettings set org.gnome.desktop.background picture-uri "$SCHEME/$BG_PATH/$FILE"
+fi

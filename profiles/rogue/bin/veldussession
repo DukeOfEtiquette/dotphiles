@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set_window_size_pos() {
+
+    if [ -z "$1" ]
+        then
+            echo "Missing 'window_name' argument"
+    fi
+
+    window_id=$(xdotool search --onlyvisible --name $1)
+    x=$2
+    y=$3
+    w=$4
+    h=$5
+
+    xdotool windowmove $window_id 0 0
+    xdotool windowsize $window_id 0 0
+
+    xdotool windowmove $window_id $x $y
+    xdotool windowsize $window_id $w $h
+}
+
+# lastWindow=`wmctrl -l | awk 'BEGIN{a=   0}{if ($2>0+a) a=$2} END{print a}'`
+# nextWindow=$(($lastWindow))
+# wmctrl -s $nextWindow
+
+google-chrome --new-window "http://map.veldus.net/" "http://veldus.net/adventures/forest-of-fangs.html"
+
+google-chrome --new-window "https://app.roll20.net/campaigns/details/11414062/forest-of-fangs"
+
+google-chrome --new-window "https://chat.openai.com/" "http://journal.veldus.net/campaigns/orcus_is_coming/forest_of_fangs/index.html"
+
+PROJECT_NAME=veldus
+# xfce4-terminal \
+#     --default-working-directory "$HOME/src/$PROJECT_NAME" \
+#     -T $PROJECT_NAME &
+
+code "$HOME/src/$PROJECT_NAME/wiki"
+code "$HOME/src/$PROJECT_NAME/journal"

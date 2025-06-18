@@ -1,0 +1,4 @@
+.DS_Store
+*.swp
+*.swo
+profiles/shared/s3_credentials.csv

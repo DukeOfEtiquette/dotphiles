@@ -1,0 +1,11 @@
+#!/bin/sh
+
+wmctrl -s 0
+
+kill -9 $(pgrep skype)
+kill -9 $(pgrep Discord)
+kill -9 $(pgrep code)
+kill -9 $(pgrep chrome)
+kill -9 $(pgrep evolution)
+kill -9 $(pgrep tradingview | head -n 1)
+kill -9 $(pgrep xfce4-terminal)

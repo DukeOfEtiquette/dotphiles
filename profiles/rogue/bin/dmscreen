@@ -1,0 +1,39 @@
+#!/bin/sh
+
+SLEEP_DUR=2
+
+set_window_size_pos() {
+
+    if [ -z "$1" ]
+        then
+            echo "Missing 'window_name' argument"
+    fi
+
+    window_id=$(xdotool search --onlyvisible --name $1)
+    x=$2
+    y=$3
+    w=$4
+    h=$5
+
+    xdotool windowmove $window_id 0 0
+    xdotool windowsize $window_id 0 0
+
+    xdotool windowmove $window_id $x $y
+    xdotool windowsize $window_id $w $h
+}
+
+lastWindow=`wmctrl -l | awk 'BEGIN{a=   0}{if ($2>0+a) a=$2} END{print a}'`
+nextWindow=$(($lastWindow+1))
+wmctrl -s $nextWindow
+
+PROJECT_NAME=veldus
+code /home/adam/src/$PROJECT_NAME
+
+google-chrome --new-window "http://127.0.0.1:4242/" "http://journal.veldus.net" "http://veldus.net"
+
+sleep $SLEEP_DUR
+set_window_size_pos "127.0.0.1" 2000 0 1600 1600
+set_window_size_pos $PROJECT_NAME 0 0 2000 2000
+# xfce4-terminal \
+#     --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+#     -T $PROJECT_NAME &

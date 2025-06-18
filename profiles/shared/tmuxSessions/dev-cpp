@@ -1,0 +1,20 @@
+#!/bin/bash
+
+path=`pwd` # Get path where tmux is being called
+
+tmux has-session -t dev-cpp 2>/dev/null # See if this session already exists
+if [ "$?" -eq 1 ]; then					# If not then create it
+	tmux new-session -d -s dev-cpp
+	tmux split-window -h
+	tmux select-pane -t 0
+else
+	echo "Session Found. Connecting."
+fi
+
+# Turn pane-sync on and cd to where the call is being made
+tmux set-window-option synchronize-panes on
+tmux send-keys "cd ${path}" C-m
+tmux set-window-option synchronize-panes off
+
+# Attach to the session
+tmux attach -t dev-cpp

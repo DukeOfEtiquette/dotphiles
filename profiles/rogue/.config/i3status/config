@@ -1,0 +1,60 @@
+general {
+  output_format = "i3bar"
+  colors = false
+  markup = pango
+  interval = 5
+  color_good = '#2f343f'
+  color_degraded = '#ebcb8b'
+  color_bad = '#ba5e57'
+}
+
+# order += "wireless wlp82s0"
+order += "load"
+order += "cpu_temperature 0"
+order += "disk /"
+order += "volume master"
+order += "tztime local"
+#order += "tztime france"
+order += "battery 0"
+
+#wireless wlp82s0 {
+#  format_up = "%essid %ip"
+#  format_down = "nil wifi"
+#}
+
+load {
+  format = "<span> %1min Load </span>"
+}
+
+cpu_temperature 0 {
+  format = "<span> %degrees °C </span>"
+  path = "/sys/class/thermal/thermal_zone0/temp"
+}
+
+disk "/" {
+  format = "<span> %free Free </span>"
+}
+
+volume master {
+	format = "<span>♪ %volume</span>"
+  format_muted = "<span>♪ MUTE</span>"
+	device = "pulse:0"
+}
+
+tztime local {
+  format = "<span> %time </span>"
+  format_time = "%a %b %-d %I:%M %p"
+}
+
+#tztime france {
+#  format = "Lyon %I:%M %p"
+#  timezone = "Europe/Paris"
+#}
+
+battery 0 {
+  format = "%percentage %remaining"
+  path = "/sys/class/power_supply/BAT0/uevent"
+  low_threshold = 30
+  threshold_type = time
+  integer_battery_capacity = true
+}

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+tmux has-session -t flip-server 2>/dev/null # See if this session already exists
+if [ "$?" -eq 1 ]; then						# If not then create it
+	tmux new-session -d -s flip-server		# Create a new session with given name
+	tmux split-window -h					# Make a vertical pane split
+	tmux select-pane -t 0					# Make sure we start on the original pane
+	tmux set-window-option synchronize-panes on
+	tmux send-keys "osu" C-m				# Make ssh request to flip servers
+else
+	echo "Session Found. Connecting."
+fi
+
+# Attach to the session
+tmux attach -t flip-server

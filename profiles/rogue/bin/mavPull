@@ -1,0 +1,14 @@
+#!/bin/bash
+
+MAV_SRC=/home/adam/src/maverick
+cd $MAV_SRC
+
+git checkout master;
+git pull;
+git submodule update --init --recursive;
+git submodule foreach --recursive git checkout master;
+git submodule foreach --recursive git pull;
+# Reset ffmpeg submodule is AssetCore
+git submodule update external/ffmpeg
+# Reset SFML submodule
+git submodule update external/SFML
