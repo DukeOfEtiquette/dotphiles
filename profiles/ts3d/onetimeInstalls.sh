@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 echo "***WARNING*** this script is not well tested, review before continuing"
 
@@ -8,7 +9,7 @@ if [ "$response" = "y" ]; then
 fi
 
 # make sure store for screenshots is created
-mkdir -p $HOME/screenshots
+mkdir -p "$HOME/screenshots"
 
 # install dircolors
 read -p "Install dircolors? (y/N) " response
