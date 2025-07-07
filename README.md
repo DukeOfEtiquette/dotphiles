@@ -11,7 +11,8 @@ Take the following steps to set up a new machine from scratch:
 1. [Download/install additional tools](#additional-tools) not available in `apt`
 1. [Review tips 'n' tricks](#useful-linux-tips-n-tricks)
 
-   - **NOTE:** You may want to checkout any `onetimeInstalls.sh` scripts found in a profile
+   - **NOTE:** You may want to checkout any `onetimeInstalls.sh` scripts found in a profile.
+     Run them with `--yes` to skip prompts once you've reviewed the code.
 
 ### Start here
 
