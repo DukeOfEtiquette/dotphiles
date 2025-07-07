@@ -42,8 +42,8 @@ base() {
   declare -a urls=(
   "https://open.spotify.com/"
   "https://messages.google.com/web/conversations"
-  "https://gmail.com/"
   "https://roguegamingstudio.com:8443/bugzilla/"
+  "https://gmail.com/"
   )
 
   name="dashboard"
@@ -55,9 +55,9 @@ base() {
   WINDOWS[$NEXT_INDEX]="$dest Discord 800 600 1985 1496"
   NEXT_INDEX=$((NEXT_INDEX+1))
 
-  skypeforlinux &
-  WINDOWS[$NEXT_INDEX]="$dest Skype 0 0 1867 1734"
-  NEXT_INDEX=$((NEXT_INDEX+1))
+  # skypeforlinux &
+  # WINDOWS[$NEXT_INDEX]="$dest Skype 0 0 1867 1734"
+  # NEXT_INDEX=$((NEXT_INDEX+1))
 
   xfce4-terminal -T "DEFAULT_TERM" &
 
@@ -96,9 +96,8 @@ personal() {
   urls=(
   "https://onlineaccess.edwardjones.com/app/oa-login"
   "https://robinhood.com"
-  "https://www.coinbase.com/assets"
-  "https://pro.kraken.com/app/portfolio/overview"
-  "https://twitter.com/"
+  "https://docs.google.com/spreadsheets/d/1-s2X2wsjQSnSXIY0-QA7MjFdjGF3LBMUxQsjyUbfyA0/edit"
+  "https://app.ynab.com/"
   )
 
   name="finance"

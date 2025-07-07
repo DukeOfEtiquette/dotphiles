@@ -126,13 +126,15 @@ source "$HOME/bin/lscolors.sh"
 # ENV config
 export EDITOR='/usr/bin/code'
 export MAV_SRC="$HOME/src/maverick"
-alias codemav="cd $MAV_SRC && code ."
-alias oles="cd $MAV_SRC/encore/OlesGoneBerzerkKeno"
 export MAV_DEBUG="$HOME/builds/debug"
 export PATH=$PATH:$HOME/builds/mav_tools/animation_maker/cram
 export PATH=$PATH:$HOME/.local/bin
 
 # QoL
+alias elite="cd $MAV_SRC/elite"
+alias plat="cd $MAV_SRC/platinum"
+alias encore="cd $MAV_SRC/encore"
+
 alias c="clear"
 alias o='mimeopen'
 alias t='xfce4-terminal'

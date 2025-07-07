@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# switch to workspace 0
 wmctrl -s 0
 
-xfce4-terminal -T "DEFAULT_TERM"
+# build a unique title from the script PID
+TITLE="TERM-$$"
+
+# launch the terminal with that title, in the background
+xfce4-terminal --title "$TITLE" &
+
+# give X a moment to map the new window
+sleep 0.1
+
+# activate the window whose title exactly matches our unique title
+wmctrl -F -a "$TITLE"
