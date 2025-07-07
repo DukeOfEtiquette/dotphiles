@@ -57,15 +57,6 @@ $ `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/
 1. $ `mkdir -p ~/screenshots`
    - Review `$HOME/.config/i3/config`, there are system bindings for taking screenshots
 
-**DEPRECATED**
-
-LS_COLORS script now part of repo, just if it needs updated but no need to install.
-
-1. Install [.dircolors](https://github.com/trapd00r/LS_COLORS#installation)
-
-   - $ `mkdir /tmp/LS_COLORS && curl -L https://api.github.com/repos/trapd00r/LS_COLORS/tarball/master | tar xzf - --directory=/tmp/LS_COLORS --strip=1 && ( cd /tmp/LS_COLORS && sh install.sh )`
-   - You may want to checkout any `onetimeInstalls.sh` scripts found in a profile
-
 1. Verify `installDotfiles` is setup properly and run: `./installDotfiles --profile gomez`
 
 1. $ `source ~/.zshrc`
@@ -98,7 +89,7 @@ LS_COLORS script now part of repo, just if it needs updated but no need to insta
 
 [nvm](https://github.com/nvm-sh/nvm)
 
-`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash`
+`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash`
 
 ### Dunst
 
@@ -109,13 +100,6 @@ Custom notification window (comes with Lubuntu)
 ## Useful Linux tips 'n' tricks
 
 ### Create new linux user
-
----
-**NOTE**
-
-For a new user, you must run the oh-my-zsh and dircolors install before running this installDotfiles.sh!
-
----
 
 For this example, let us assume we are adding a new user named `spare`
 
@@ -128,10 +112,6 @@ For this example, let us assume we are adding a new user named `spare`
 1. Install oh-my-zsh for user
 
    - $ `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
-
-1. Install dircolors for user
-
-   - `mkdir -p $HOME/.local/share && ( cd /tmp/LS_COLORS && sh install.sh )`
 
 1. Clone this repo
 
