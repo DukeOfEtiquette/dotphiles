@@ -1,9 +1,10 @@
 #!/bin/bash
+set -euo pipefail
 
 echo -e '!!!\nrun "eval $(ssh-agent) && ssh-add ~/.ssh/id_rsa" to stop constant asking of password\n!!!\n'
 
-mkdir -p $TS3D_DOCS
-cd $TS3D_DOCS
+mkdir -p "$TS3D_DOCS"
+cd "$TS3D_DOCS"
 
 echo -e "Cloning at $TS3D_DOCS\n"
 

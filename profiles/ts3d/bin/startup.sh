@@ -1,4 +1,5 @@
 #!/bin/sh
+set -euo pipefail
 
 notify-send --expire-time 5000 "display startup begin"
 

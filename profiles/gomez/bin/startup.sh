@@ -1,4 +1,5 @@
 #!/bin/sh
+set -euo pipefail
 
 xrandr --output HDMI-1 --off --output eDP-1 --primaryy --mode 1920x1080 --pos 0x0 --rotate normal
 wait "$!"
