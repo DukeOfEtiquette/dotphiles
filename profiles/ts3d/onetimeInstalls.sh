@@ -1,58 +1,72 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "***WARNING*** this script is not well tested, review before continuing"
+usage() {
+    echo "Usage: $0 [--yes]" >&2
+    echo "  --yes   run without interactive prompts" >&2
+    exit "$1"
+}
 
-read -p "Would you like to HALT execution? (y/N) " response
-if [ "$response" = "y" ]; then
+ASSUME_YES=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -y|--yes)
+            ASSUME_YES=1
+            shift
+            ;;
+        -h|--help)
+            usage 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage 1
+            ;;
+    esac
+done
+
+prompt() {
+    local msg="$1"
+    if [ "$ASSUME_YES" -eq 1 ]; then
+        echo "$msg (auto yes)"
+        return 0
+    fi
+    read -r -p "$msg (y/N) " response
+    [ "$response" = "y" ]
+}
+
+echo "***WARNING*** this script will install packages and may modify your system***"
+
+if prompt "Would you like to HALT execution?"; then
     exit 1
 fi
 
-# make sure store for screenshots is created
 mkdir -p "$HOME/screenshots"
 
-# install dircolors
-read -p "Install dircolors? (y/N) " response
-if [ "$response" = "y" ]; then
-    echo "DIRCOLORS IN"
-    # mkdir /tmp/LS_COLORS && curl -L https://api.github.com/repos/trapd00r/LS_COLORS/tarball/master | tar xzf - --directory=/tmp/LS_COLORS --strip=1 && ( cd /tmp/LS_COLORS && sh install.sh )
-else
-    echo "no dircolors"
+if prompt "Install dircolors?"; then
+    mkdir /tmp/LS_COLORS
+    curl -L https://api.github.com/repos/trapd00r/LS_COLORS/tarball/master | tar xzf - --directory=/tmp/LS_COLORS --strip=1
+    ( cd /tmp/LS_COLORS && sh install.sh )
 fi
 
-# debian installs
-read -p "Install greatest hits Debian packages? (y/N) " response
-if [ "$response" = "y" ]; then
-    echo "DEBIAN INSTALLS"
-    # sudo apt update && sudo apt install git git-lfs cifs-utils arandr xfce4-terminal xclip maim flameshot xdotool pavucontrol bat tmux
-else
-    echo "no debian"
+if prompt "Install greatest hits Debian packages?"; then
+    sudo apt update
+    sudo apt install -y git git-lfs cifs-utils arandr xfce4-terminal xclip maim flameshot xdotool pavucontrol bat tmux
 fi
 
-# download Docker
-read -p "Install Docker? (y/N) " response
-if [ "$response" = "y" ]; then
-    echo "DACKER BABY"
-    # curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh && rm get-docker.sh && sudo usermod -aG docker $USER
+if prompt "Install Docker?"; then
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    rm get-docker.sh
+    sudo usermod -aG docker "$USER"
     echo "!!!ATTENTION!!! Docker will require a system restart!"
-else
-    echo "no dacker : ("
 fi
 
-# install nvm
-read -p "Install nvm? (y/N) " response
-if [ "$response" = "y" ]; then
-    echo "NVM TIME"
-    # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-else
-    echo "no nvm"
+if prompt "Install nvm?"; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
 fi
 
-# install slack
-read -p "Install Slack? (y/N) " response
-if [ "$response" = "y" ]; then
-    echo "SLACKIN OFF AMIRITE"
-    # wget https://downloads.slack-edge.com/linux_releases/slack-desktop-4.0.2-amd64.deb && sudo apt install ./slack-desktop-*.deb && rm ./slack-desktop-*.deb
-else
-    echo "no slackin off"
+if prompt "Install Slack?"; then
+    wget https://downloads.slack-edge.com/linux_releases/slack-desktop-4.0.2-amd64.deb
+    sudo apt install -y ./slack-desktop-4.0.2-amd64.deb
+    rm ./slack-desktop-4.0.2-amd64.deb
 fi
