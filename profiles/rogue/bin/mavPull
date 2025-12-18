@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAV_SRC=/home/adam/src/maverick
+MAV_SRC=/home/adam/src/rogue/maverick
 cd $MAV_SRC
 
 git checkout master;
