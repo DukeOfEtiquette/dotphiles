@@ -13,7 +13,12 @@ Install dotfiles for a specific profile:
 ./installDotfiles.sh --profile <profile_name>
 ```
 
-Valid profiles: `gomez`, `rogue`
+Preview changes without making them:
+```bash
+./installDotfiles.sh --profile <profile_name> --dry-run
+```
+
+Valid profiles: `gomez`, `rogue`, `ts3d`
 
 The install script backs up existing dotfiles to `~/.everc/dotfiles_bck/` before creating symlinks.
 
@@ -22,8 +27,8 @@ The install script backs up existing dotfiles to `~/.everc/dotfiles_bck/` before
 ### Directory Structure
 
 - `profiles/` - Machine-specific configurations
-  - `gomez/`, `rogue/` - Individual machine profiles
-  - `shared/` - Common files used across all profiles (backgrounds, oh-my-zsh themes, tmux sessions)
+  - `gomez/`, `rogue/`, `ts3d/` - Individual machine profiles
+  - `shared/` - Common files used across all profiles (backgrounds, i3 config, oh-my-zsh themes, tmux sessions)
 - `installDotfiles.sh` - Main installation script
 
 ### Profile Structure
@@ -31,8 +36,10 @@ The install script backs up existing dotfiles to `~/.everc/dotfiles_bck/` before
 Each profile contains:
 - `home/` - Files symlinked to `$HOME` as dotfiles (e.g., `zshrc` → `~/.zshrc`)
 - `bin/` - Scripts copied to `$HOME/bin`
-- `.config/` - Config directories copied to `~/.config/` (i3, i3status, dunst, xfce4/terminal)
+- `.config/` - Config directories copied to `~/.config/` (i3status, dunst, xfce4/terminal)
 - `.fonts/` - Custom fonts copied to `~/.fonts/`
+
+Note: i3 config is shared across all profiles (in `shared/.config/i3/`), while i3status configs remain profile-specific.
 
 ### Installation Behavior
 

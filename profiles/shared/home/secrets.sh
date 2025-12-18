@@ -26,11 +26,13 @@ _SECRETS_DIR="$_DOTFILES/secrets"
 _source_env_file() {
     local env_file="$1"
     if [[ -f "$env_file" ]]; then
-        # Check file permissions - warn if too permissive
+        # Check file permissions - refuse to load if too permissive
         local perms
         perms=$(stat -c "%a" "$env_file" 2>/dev/null || stat -f "%OLp" "$env_file" 2>/dev/null)
         if [[ "$perms" != "600" && "$perms" != "400" ]]; then
-            echo "[secrets.sh] WARNING: $env_file has permissive permissions ($perms). Run: chmod 600 $env_file" >&2
+            echo "[secrets.sh] REFUSING to load $env_file - permissions too open ($perms)" >&2
+            echo "[secrets.sh] Fix with: chmod 600 $env_file" >&2
+            return 1
         fi
 
         # Source the file, exporting each variable
