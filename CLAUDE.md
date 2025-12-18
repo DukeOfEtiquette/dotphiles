@@ -38,6 +38,17 @@ Each profile contains:
 
 The `installDotfiles.sh` script:
 1. Expects to run from `$HOME/.everc/dotfiles`
-2. Backs up existing configs before installing
-3. Creates symlinks for home directory dotfiles
-4. Copies (not symlinks) bin scripts and .config directories
+2. Sets up the `secrets/` directory with proper permissions
+3. Backs up existing configs before installing
+4. Creates symlinks for home directory dotfiles
+5. Copies (not symlinks) bin scripts and .config directories
+
+## Secrets Management
+
+**NEVER commit API keys, tokens, or credentials to this repository.**
+
+Secrets are stored in `secrets/` (gitignored) and loaded via `profiles/shared/home/secrets.sh`:
+- `secrets/.env` - Shared secrets for all profiles
+- `secrets/.env.<profile>` - Profile-specific secrets (e.g., `.env.rogue`)
+
+The `.env.example` template shows expected secret formats. Secrets are automatically sourced when opening a new shell.
