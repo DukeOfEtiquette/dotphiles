@@ -96,7 +96,6 @@ personal() {
   urls=(
   "https://onlineaccess.edwardjones.com/app/oa-login"
   "https://robinhood.com"
-  "https://docs.google.com/spreadsheets/d/1-s2X2wsjQSnSXIY0-QA7MjFdjGF3LBMUxQsjyUbfyA0/edit"
   "https://app.ynab.com/"
   )
 
