@@ -106,7 +106,7 @@ source $ZSH/oh-my-zsh.sh
 export DOTFILES="$HOME/.everc/dotfiles"
 export DOTPROFILE="rogue"
 alias dot="cd $DOTFILES && code ."
-alias i3c="vim $DOTFILES/profiles/rogue/.config/i3/config"
+alias i3c="vim $DOTFILES/profiles/shared/.config/i3/config"
 alias i3s="vim $DOTFILES/profiles/rogue/.config/i3status/config"
 alias vz="vim $DOTFILES/profiles/rogue/home/zshrc"
 

@@ -23,7 +23,7 @@ cd "$personal_dir/dotfiles"
 # --profile is required
 profile=""
 if [ "$1" = "--profile" ]; then
-  valid_profiles="gomez rogue"
+  valid_profiles="gomez rogue ts3d"
   echo "$valid_profiles" | grep -w -q "$2"
   if [ $? -eq 0 ]; then
     profile=$2
@@ -161,8 +161,8 @@ function backup_i3config () {
     mv "$HOME/.config/i3status/config" "$backup_olddir/.config/i3status/"
   fi
 
-  # copy these Linux i3 .config to system
-  cp -r "$profile_dir/.config/i3"/* "$HOME/.config/i3/"
+  # copy i3 config from shared, i3status from profile
+  cp -r "$shared_dotfile_dir/.config/i3"/* "$HOME/.config/i3/"
   cp -r "$profile_dir/.config/i3status"/* "$HOME/.config/i3status/"
 }
 
