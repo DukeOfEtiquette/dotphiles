@@ -73,7 +73,7 @@ project() {
 
   PROJECT_NAME=$1
   xfce4-terminal \
-      --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+      --default-working-directory "$HOME/src/$PROJECT_NAME" \
       -e 'bash -c "code .; zsh"' -T "xfce_${PROJECT_NAME}" &
 
   WINDOWS[$NEXT_INDEX]="$dest $PROJECT_NAME 0 0 2000 2000"
@@ -129,7 +129,7 @@ veldus() {
 
   PROJECT_NAME="veldus"
   xfce4-terminal \
-      --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+      --default-working-directory "$HOME/src/$PROJECT_NAME" \
       -e 'bash -c "code .; zsh"' -T "xfce_${PROJECT_NAME}" &
 
   WINDOWS[$NEXT_INDEX]="$dest $PROJECT_NAME 0 0 2000 2000"

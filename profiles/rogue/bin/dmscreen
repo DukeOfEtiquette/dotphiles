@@ -27,7 +27,7 @@ nextWindow=$(($lastWindow+1))
 wmctrl -s $nextWindow
 
 PROJECT_NAME=veldus
-code /home/adam/src/$PROJECT_NAME
+code "$HOME/src/$PROJECT_NAME"
 
 google-chrome --new-window "http://127.0.0.1:4242/" "http://journal.veldus.net" "http://veldus.net"
 
