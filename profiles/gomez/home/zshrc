@@ -105,9 +105,9 @@ source $ZSH/oh-my-zsh.sh
 export DOTFILES="$HOME/.everc/dotfiles"
 export DOTPROFILE="gomez"
 alias dot="cd $DOTFILES"
-alias i3c="vim $DOTFILES/ts3d/.config/i3/config"
-alias i3s="vim $DOTFILES/ts3d/.config/i3status/config"
-alias vz="vim $DOTFILES/ts3d/zshrc"
+alias i3c="vim $DOTFILES/profiles/gomez/.config/i3/config"
+alias i3s="vim $DOTFILES/profiles/gomez/.config/i3status/config"
+alias vz="vim $DOTFILES/profiles/gomez/home/zshrc"
 
 # Load secrets (API keys, tokens, etc.) - stored in $DOTFILES/secrets/
 [[ -f "$DOTFILES/profiles/shared/home/secrets.sh" ]] && source "$DOTFILES/profiles/shared/home/secrets.sh"

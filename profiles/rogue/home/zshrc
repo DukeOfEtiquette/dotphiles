@@ -106,9 +106,9 @@ source $ZSH/oh-my-zsh.sh
 export DOTFILES="$HOME/.everc/dotfiles"
 export DOTPROFILE="rogue"
 alias dot="cd $DOTFILES && code ."
-alias i3c="vim $DOTFILES/rogue/.config/i3/config"
-alias i3s="vim $DOTFILES/rogue/.config/i3status/config"
-alias vz="vim $DOTFILES/rogue/zshrc"
+alias i3c="vim $DOTFILES/profiles/rogue/.config/i3/config"
+alias i3s="vim $DOTFILES/profiles/rogue/.config/i3status/config"
+alias vz="vim $DOTFILES/profiles/rogue/home/zshrc"
 
 # Load secrets (API keys, tokens, etc.) - stored in $DOTFILES/secrets/
 [[ -f "$DOTFILES/profiles/shared/home/secrets.sh" ]] && source "$DOTFILES/profiles/shared/home/secrets.sh"
