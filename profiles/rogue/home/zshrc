@@ -110,6 +110,9 @@ alias i3c="vim $DOTFILES/rogue/.config/i3/config"
 alias i3s="vim $DOTFILES/rogue/.config/i3status/config"
 alias vz="vim $DOTFILES/rogue/zshrc"
 
+# Load secrets (API keys, tokens, etc.) - stored in $DOTFILES/secrets/
+[[ -f "$DOTFILES/profiles/shared/home/secrets.sh" ]] && source "$DOTFILES/profiles/shared/home/secrets.sh"
+
 # mmmmm sexy colors, https://github.com/trapd00r/LS_COLORS#installation
 source "$HOME/bin/lscolors.sh"
 

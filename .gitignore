@@ -2,3 +2,12 @@
 *.swp
 *.swo
 profiles/shared/s3_credentials.csv
+
+# Secrets - NEVER commit these
+secrets/.env
+secrets/.env.*
+!secrets/.env.example
+*.pem
+*.key
+*_credentials*
+*_secret*

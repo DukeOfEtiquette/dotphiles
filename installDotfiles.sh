@@ -60,6 +60,32 @@ shared_backup_dir="$personal_dir/dotfiles_bck/profiles/shared"
 
 ### <HELPER_FUNCTIONS> ###
 
+# This function sets up the secrets directory structure
+function setup_secrets () {
+  printf "### SETTING UP SECRETS DIRECTORY ###\n"
+
+  local secrets_dir="$personal_dir/dotfiles/secrets"
+
+  # Create secrets directory if it doesn't exist
+  mkdir -p "$secrets_dir"
+
+  # Create .env file if it doesn't exist
+  if [[ ! -f "$secrets_dir/.env" ]]; then
+    touch "$secrets_dir/.env"
+    chmod 600 "$secrets_dir/.env"
+    printf "Created $secrets_dir/.env (add your shared secrets here)\n"
+  fi
+
+  # Create profile-specific secrets file if it doesn't exist
+  if [[ ! -f "$secrets_dir/.env.$profile" ]]; then
+    touch "$secrets_dir/.env.$profile"
+    chmod 600 "$secrets_dir/.env.$profile"
+    printf "Created $secrets_dir/.env.$profile (add profile-specific secrets here)\n"
+  fi
+
+  printf "### SECRETS SETUP COMPLETE ###\n"
+}
+
 # This function is responsible for backing up any images used for desktop backgrounds
 function backup_backgrounds () {
   printf "### STARTING BACKGROUNDS BACKUP ###\n"
@@ -188,6 +214,9 @@ function backup_home_bin () {
 # This function controls what backup functions are run
 function backup_all () {
   printf "### BACKUP_ALL STARTING ###\n"
+
+  # setup secrets directory first
+  setup_secrets
 
   # shared
   backup_backgrounds
