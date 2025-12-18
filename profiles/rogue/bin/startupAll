@@ -1,3 +1,4 @@
 #!/bin/bash
 
-/home/adam/bin/startupSession --all
+# TODO: startupSession script does not exist
+# /home/adam/bin/startupSession --all

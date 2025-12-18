@@ -21,6 +21,7 @@ personal_dir=$HOME/.everc
 cd "$personal_dir/dotfiles"
 
 # --profile is required
+profile=""
 if [ "$1" = "--profile" ]; then
   valid_profiles="gomez rogue"
   echo "$valid_profiles" | grep -w -q "$2"
@@ -95,7 +96,9 @@ function backup_backgrounds () {
   mkdir -p "$HOME/backgrounds"
 
   # MOVE everything that is a background to backup location
-  mv "$HOME/backgrounds"/* "$shared_backup_dir/backgrounds/"
+  if [[ -n "$(ls -A "$HOME/backgrounds" 2>/dev/null)" ]]; then
+    mv "$HOME/backgrounds"/* "$shared_backup_dir/backgrounds/"
+  fi
 
   # copy target backgrounds to system
   cp "$shared_dotfile_dir/backgrounds"/* "$HOME/backgrounds"
@@ -109,7 +112,9 @@ function backup_omz () {
   mkdir -p "$shared_backup_dir/omz_themes/theme"
 
   # MOVE everything that is a theme to backup location
-  cp "$HOME/.oh-my-zsh/themes"/*.zsh-theme "$shared_backup_dir/omz_themes/"
+  if [[ -n "$(ls "$HOME/.oh-my-zsh/themes"/*.zsh-theme 2>/dev/null)" ]]; then
+    cp "$HOME/.oh-my-zsh/themes"/*.zsh-theme "$shared_backup_dir/omz_themes/"
+  fi
 
   # copy target OMZ themes to system
   cp "$shared_dotfile_dir/omz_themes"/* "$HOME/.oh-my-zsh/themes/"
@@ -130,7 +135,9 @@ function backup_homedir () {
     basename_file="$(basename "$file")"
 
     # printf "Moving $HOME/.$file to $backup_olddir/home \n"
-    mv "$HOME/.$basename_file" "$backup_olddir/home"
+    if [[ -e "$HOME/.$basename_file" ]]; then
+      mv "$HOME/.$basename_file" "$backup_olddir/home"
+    fi
     # printf "Creating symlink to $file in home directory.\n"
     ln -s "$file" "$HOME/.$basename_file"
   done
@@ -147,8 +154,12 @@ function backup_i3config () {
   mkdir -p "$HOME/.config/i3status"
 
   # MOVE anything in system .config that starts with 'i3' to backup
-  mv "$HOME/.config/i3/config" "$backup_olddir/.config/i3/"
-  mv "$HOME/.config/i3status/config" "$backup_olddir/.config/i3status/"
+  if [[ -f "$HOME/.config/i3/config" ]]; then
+    mv "$HOME/.config/i3/config" "$backup_olddir/.config/i3/"
+  fi
+  if [[ -f "$HOME/.config/i3status/config" ]]; then
+    mv "$HOME/.config/i3status/config" "$backup_olddir/.config/i3status/"
+  fi
 
   # copy these Linux i3 .config to system
   cp -r "$profile_dir/.config/i3"/* "$HOME/.config/i3/"
@@ -177,7 +188,9 @@ function backup_fonts () {
   mkdir -p "$HOME/.fonts/"
 
   # MOVE any TTF in system .fonts
-  mv "$HOME/.fonts"/*.ttf "$backup_olddir/.fonts/"
+  if [[ -n "$(ls "$HOME/.fonts"/*.ttf 2>/dev/null)" ]]; then
+    mv "$HOME/.fonts"/*.ttf "$backup_olddir/.fonts/"
+  fi
 
   # copy these Linux .font
   cp -r "$profile_dir/.fonts"/*.ttf "$HOME/.fonts/"
@@ -190,8 +203,10 @@ function backup_terminal () {
   mkdir -p "$backup_olddir/.config/xfce4/terminal"
   mkdir -p "$HOME/.config/xfce4/terminal"
 
-  # MOVE anything in system .config that starts with 'i3' to backup
-  mv "$HOME/.config/xfce4/terminal/terminalrc" "$backup_olddir/.config/xfce4/terminal/terminalrc"
+  # MOVE existing terminal config to backup
+  if [[ -f "$HOME/.config/xfce4/terminal/terminalrc" ]]; then
+    mv "$HOME/.config/xfce4/terminal/terminalrc" "$backup_olddir/.config/xfce4/terminal/terminalrc"
+  fi
 
   # copy these Linux i3 .config to system
   cp "$profile_dir/.config/xfce4/terminal/terminalrc" "$HOME/.config/xfce4/terminal/"

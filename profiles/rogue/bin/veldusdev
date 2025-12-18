@@ -24,9 +24,9 @@ set_window_size_pos() {
 # nextWindow=$(($lastWindow))
 # wmctrl -s $nextWindow
 
-google-chrome --new-window "htpp://localhost:4242"
+google-chrome --new-window "http://localhost:4242"
 
-google-chrome --new-window "htpp://localhost:5050"
+google-chrome --new-window "http://localhost:5050"
 
 PROJECT_NAME=veldus
 # xfce4-terminal \
