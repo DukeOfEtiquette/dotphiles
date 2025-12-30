@@ -147,7 +147,7 @@ function install_omz () {
   if $DRY_RUN; then echo "[dry-run] Would install OMZ themes"; return; fi
 
   # make backup of OMZ themes
-  mkdir -p "$shared_backup_dir/omz_themes/theme"
+  mkdir -p "$shared_backup_dir/omz_themes"
 
   # MOVE everything that is a theme to backup location
   if [[ -n "$(ls "$HOME/.oh-my-zsh/themes"/*.zsh-theme 2>/dev/null)" ]]; then
@@ -214,7 +214,9 @@ function install_dunst () {
   mkdir -p "$backup_olddir/.config/dunst"
   mkdir -p "$HOME/.config/dunst"
 
-  cp -r "$HOME/.config/dunst" "$backup_olddir/.config/"
+  if [[ -n "$(ls "$HOME/.config/dunst" 2>/dev/null)" ]]; then
+    cp -r "$HOME/.config/dunst/"* "$backup_olddir/.config/dunst/"
+  fi
 
   # install new config
   cp -r "$profile_dir/.config/dunst"/* "$HOME/.config/dunst/"
