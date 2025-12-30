@@ -17,6 +17,16 @@ This is **Part 2** of a sequential upgrade path: Bullseye → Bookworm → Trixi
   sudo tar czf /backup/etc-backup-bookworm.tar.gz /etc
   ```
 
+- [ ] Backup /var/lib/dpkg (critical for package system recovery):
+  ```bash
+  sudo tar czf /backup/var-lib-dpkg-bookworm.tar.gz /var/lib/dpkg
+  ```
+
+- [ ] Backup /var/lib/apt/extended_states:
+  ```bash
+  sudo cp /var/lib/apt/extended_states /backup/extended_states-bookworm
+  ```
+
 - [ ] Backup /home:
   ```bash
   tar czf /backup/home-backup-bookworm.tar.gz ~
@@ -33,6 +43,11 @@ This is **Part 2** of a sequential upgrade path: Bullseye → Bookworm → Trixi
 - [ ] List manually installed packages:
   ```bash
   apt-mark showmanual > /backup/my-packages-bookworm.txt
+  ```
+
+- [ ] Save complete package selections (for full restoration if needed):
+  ```bash
+  dpkg --get-selections '*' > /backup/pkg-selections-bookworm.txt
   ```
 
 - [ ] Document current kernel:
@@ -67,13 +82,77 @@ This is **Part 2** of a sequential upgrade path: Bullseye → Bookworm → Trixi
   df -h /
   ```
 
+- [ ] Verify kernel metapackage is installed:
+  ```bash
+  dpkg -l 'linux-image*' | grep ^ii | grep -i meta
+  ```
+  Should show `linux-image-amd64` or similar. If missing, install it:
+  ```bash
+  sudo apt install linux-image-amd64
+  ```
+
+- [ ] Check for APT pinning (must be disabled for upgrade):
+  ```bash
+  ls -la /etc/apt/preferences /etc/apt/preferences.d/ 2>/dev/null
+  ```
+  If pinning exists, disable or remove it before proceeding.
+
+- [ ] Check for proposed-updates in sources (should be removed):
+  ```bash
+  grep -r proposed-updates /etc/apt/sources.list /etc/apt/sources.list.d/
+  ```
+  Remove any proposed-updates lines before upgrading.
+
 ### Ensure Package System Health
 
 ```bash
+sudo dpkg --audit
 sudo dpkg --configure -a
 sudo apt --fix-broken install
 sudo apt update && sudo apt upgrade
 ```
+
+`dpkg --audit` should return nothing. If it reports packages in Half-Installed or Failed-Config states, fix them before proceeding.
+
+### Clean Up Leftover Config Files
+
+Check for stale config backups that may cause confusion:
+
+```bash
+sudo find /etc -name '*.dpkg-*' -o -name '*.ucf-*' -o -name '*.merge-error' | head -20
+```
+
+Review and remove any that are no longer needed.
+
+### Identify Non-Debian Packages
+
+List packages not from official Debian repos (may cause upgrade conflicts):
+
+```bash
+apt list '?narrow(?installed, ?not(?origin(Debian)))' 2>/dev/null || \
+  aptitude search '?narrow(?installed, ?not(?origin(Debian)))'
+```
+
+Evaluate each package - remove or ensure compatibility with Trixie.
+
+### Remove Backports from Sources
+
+Bookworm backports must be disabled before upgrading:
+
+```bash
+grep -r backports /etc/apt/sources.list /etc/apt/sources.list.d/
+```
+
+Comment out or remove any lines containing `bookworm-backports`.
+
+### Verify Console Switching Works
+
+Test that you can switch virtual terminals (needed if display issues occur during upgrade):
+
+- From GUI: Press `Ctrl+Alt+F2` to switch to tty2, then `Ctrl+Alt+F1` or `Ctrl+Alt+F7` to return
+- From console: Press `Alt+F2` to switch, then `Alt+F1` to return
+
+If these don't work, troubleshoot before proceeding.
 
 ---
 
@@ -115,47 +194,143 @@ tmux new -s upgrade
 tmux attach -t upgrade
 ```
 
-### Update sources.list
+### Start Session Recording
+
+Record the entire upgrade session for troubleshooting (run inside tmux):
 
 ```bash
-# Backup current sources.list
+script -t 2>~/upgrade-trixie.time -a ~/upgrade-trixie.script
+```
+
+This creates a typescript log you can replay later with:
+```bash
+scriptreplay ~/upgrade-trixie.time ~/upgrade-trixie.script
+```
+
+APT also logs to `/var/log/apt/history.log` and `/var/log/apt/term.log`.
+
+### Verify Root Filesystem is Writable
+
+Ensure the root partition isn't mounted read-only (can happen after filesystem errors):
+
+```bash
+mount | grep ' / '
+```
+
+If it shows `ro`, remount as read-write:
+```bash
+sudo mount -o remount,rw /
+```
+
+### Update to deb822 Sources Format
+
+Trixie recommends migrating to the new deb822 format. Create a new sources file:
+
+```bash
+# Backup current sources
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bookworm.bak
+sudo cp -r /etc/apt/sources.list.d /etc/apt/sources.list.d.bookworm.bak
 
-# Update to trixie
-sudo sed -i 's/bookworm/trixie/g' /etc/apt/sources.list
+# Disable old sources.list (will be removed later)
+sudo mv /etc/apt/sources.list /etc/apt/sources.list.disabled
+
+# Create new deb822-format sources file
+sudo tee /etc/apt/sources.list.d/debian.sources << 'EOF'
+Types: deb deb-src
+URIs: https://deb.debian.org/debian
+Suites: trixie trixie-updates trixie-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: https://security.debian.org/debian-security
+Suites: trixie-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
 ```
 
-Your sources.list should look like this after:
-
-```
-deb http://deb.debian.org/debian trixie main non-free non-free-firmware
-deb-src http://deb.debian.org/debian trixie main non-free non-free-firmware
-
-deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
-deb-src http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
-
-deb http://deb.debian.org/debian/ trixie-updates main contrib non-free non-free-firmware
-deb-src http://deb.debian.org/debian/ trixie-updates main contrib non-free non-free-firmware
-
-deb http://deb.debian.org/debian trixie-backports main non-free non-free-firmware
+Verify the new sources file:
+```bash
+cat /etc/apt/sources.list.d/debian.sources
 ```
 
 ### Run the Upgrade
 
+**WARNING:** Do NOT use NFS for the package cache during upgrade. Network interruption during NFS access can cause incomplete upgrades.
+
 ```bash
 sudo apt update
+```
+
+**Note:** If you see errors about repository information changing, use:
+```bash
+sudo apt update --allow-releaseinfo-change
+```
+
+**Check disk space requirements before committing:**
+
+```bash
+sudo apt -o APT::Get::Trivial-Only=true full-upgrade
+```
+
+This shows how much space is needed without making changes. Ensure you have enough free space.
+
+**Phase 1 - Minimal upgrade (safer, no package removals):**
+
+```bash
+sudo apt upgrade --without-new-pkgs
+```
+
+**Phase 2 - Full upgrade:**
+
+```bash
 sudo apt full-upgrade
 ```
 
 **During upgrade:**
 - When prompted about config file conflicts: **show diff and decide case-by-case**
+- **Exception:** For `/etc/init.d/*` scripts, generally accept the maintainer's version (old version saved as `.dpkg-old`)
 - Review changes carefully before accepting maintainer's version or keeping yours
+- **If the display switches away** (common with kernel/graphics updates): use `Ctrl+Alt+F1` (from GUI) or `Alt+F1` (from console) to return to the upgrade terminal
+
+### Troubleshooting Upgrade Errors
+
+If you encounter errors during upgrade:
+
+**"Could not perform immediate configuration" error:**
+```bash
+sudo apt full-upgrade -o APT::Immediate-Configure=0
+```
+
+**Dependency loop blocking upgrade:**
+```bash
+sudo apt full-upgrade -o APT::Force-LoopBreak=1
+```
+
+**File conflicts from non-standard packages:**
+```bash
+sudo dpkg -r --force-depends <conflicting-package>
+# Then retry apt full-upgrade
+```
 
 ### Post-Upgrade Cleanup
 
 ```bash
 sudo apt autoremove
 sudo apt autoclean
+
+# Remove obsolete packages (no longer in any repo)
+sudo apt purge '?obsolete'
+
+# Remove leftover config files from removed packages
+sudo apt purge '?config-files'
+
+# Convert any remaining old-format sources to deb822
+sudo apt modernize-sources
+
+# Clean up old disabled sources.list
+sudo rm -f /etc/apt/sources.list.disabled
 ```
 
 ### Reboot
@@ -338,9 +513,36 @@ systemctl status cups.service
 
 ---
 
-## Rollback Notes
+## Recovery Options
 
-If upgrade fails badly:
+If the upgrade fails or the system won't boot properly, you have several recovery options:
+
+### Option 1: initrd Debug Shell
+
+If the system fails during early boot (mounting filesystems), an initrd debug shell is automatically enabled. This provides basic troubleshooting tools.
+
+### Option 2: systemd Debug Shells
+
+Add kernel parameters at the GRUB boot menu (press `e` to edit):
+
+- **Emergency shell** (minimal environment, before most services start):
+  ```
+  systemd.unit=emergency.target
+  ```
+
+- **Debug shell on tty9** (accessible via `Ctrl+Alt+F9`):
+  ```
+  systemd.debug-shell=1
+  ```
+
+### Option 3: Debian Installer Rescue Mode
+
+Boot from the Trixie installer media and select "Rescue mode" to:
+- Mount your existing root filesystem
+- Chroot into it
+- Fix package issues with `dpkg --configure -a` or `apt --fix-broken install`
+
+### Option 4: Restore from Backup
 
 1. Boot from Debian live USB
 2. Mount root partition

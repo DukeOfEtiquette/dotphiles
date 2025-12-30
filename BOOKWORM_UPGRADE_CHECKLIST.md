@@ -22,6 +22,16 @@ sudo chown $USER:$USER /backup
   sudo tar czf /backup/etc-backup-bullseye.tar.gz /etc
   ```
 
+- [ ] Backup /var/lib/dpkg (critical for package system recovery):
+  ```bash
+  sudo tar czf /backup/var-lib-dpkg-bullseye.tar.gz /var/lib/dpkg
+  ```
+
+- [ ] Backup /var/lib/apt/extended_states:
+  ```bash
+  sudo cp /var/lib/apt/extended_states /backup/extended_states-bullseye
+  ```
+
 - [ ] Backup /home:
   ```bash
   tar czf /backup/home-backup-bullseye.tar.gz ~
@@ -38,6 +48,11 @@ sudo chown $USER:$USER /backup
 - [ ] List manually installed packages:
   ```bash
   apt-mark showmanual > /backup/my-packages-bullseye.txt
+  ```
+
+- [ ] Save complete package selections (for full restoration if needed):
+  ```bash
+  dpkg --get-selections '*' > /backup/pkg-selections-bullseye.txt
   ```
 
 - [ ] Document current kernel:
@@ -72,13 +87,91 @@ sudo chown $USER:$USER /backup
   df -h /
   ```
 
+- [ ] Verify kernel metapackage is installed:
+  ```bash
+  dpkg -l 'linux-image*' | grep ^ii | grep -i meta
+  ```
+  Should show `linux-image-amd64` or similar. If missing, install it:
+  ```bash
+  sudo apt install linux-image-amd64
+  ```
+
+- [ ] Check for APT pinning (must be disabled for upgrade):
+  ```bash
+  ls -la /etc/apt/preferences /etc/apt/preferences.d/ 2>/dev/null
+  ```
+  If pinning exists, disable or remove it before proceeding.
+
+- [ ] Check for proposed-updates in sources (should be removed):
+  ```bash
+  grep -r proposed-updates /etc/apt/sources.list /etc/apt/sources.list.d/
+  ```
+  Remove any proposed-updates lines before upgrading.
+
 ### Ensure Package System Health
 
 ```bash
+sudo dpkg --audit
 sudo dpkg --configure -a
 sudo apt --fix-broken install
 sudo apt update && sudo apt upgrade
 ```
+
+`dpkg --audit` should return nothing. If it reports packages in Half-Installed or Failed-Config states, fix them before proceeding.
+
+### Clean Up Leftover Config Files
+
+Check for stale config backups that may cause confusion:
+
+```bash
+sudo find /etc -name '*.dpkg-*' -o -name '*.ucf-*' -o -name '*.merge-error' | head -20
+```
+
+Review and remove any that are no longer needed.
+
+### Identify Non-Debian Packages
+
+List packages not from official Debian repos (may cause upgrade conflicts):
+
+```bash
+apt list '?narrow(?installed, ?not(?origin(Debian)))' 2>/dev/null || \
+  aptitude search '?narrow(?installed, ?not(?origin(Debian)))'
+```
+
+Evaluate each package - remove or ensure compatibility with Bookworm.
+
+### Remove Obsolete Packages
+
+Identify packages that are no longer in any repository (can cause upgrade complications):
+
+```bash
+apt list '~o' 2>/dev/null
+```
+
+If any are found, review and remove them:
+
+```bash
+sudo apt purge '~o'
+```
+
+### Remove Backports from Sources
+
+Bullseye backports must be disabled before upgrading:
+
+```bash
+grep -r backports /etc/apt/sources.list /etc/apt/sources.list.d/
+```
+
+Comment out or remove any lines containing `bullseye-backports` or `bullseye-backports-sloppy`.
+
+### Verify Console Switching Works
+
+Test that you can switch virtual terminals (needed if display issues occur during upgrade):
+
+- From GUI: Press `Ctrl+Alt+F2` to switch to tty2, then `Ctrl+Alt+F1` or `Ctrl+Alt+F7` to return
+- From console: Press `Alt+F2` to switch, then `Alt+F1` to return
+
+If these don't work, troubleshoot before proceeding.
 
 ---
 
@@ -180,6 +273,34 @@ tmux new -s upgrade
 tmux attach -t upgrade
 ```
 
+### Start Session Recording
+
+Record the entire upgrade session for troubleshooting (run inside tmux):
+
+```bash
+script -t 2>~/upgrade-bookworm.time -a ~/upgrade-bookworm.script
+```
+
+This creates a typescript log you can replay later with:
+```bash
+scriptreplay ~/upgrade-bookworm.time ~/upgrade-bookworm.script
+```
+
+APT also logs to `/var/log/apt/history.log` and `/var/log/apt/term.log`.
+
+### Verify Root Filesystem is Writable
+
+Ensure the root partition isn't mounted read-only (can happen after filesystem errors):
+
+```bash
+mount | grep ' / '
+```
+
+If it shows `ro`, remount as read-write:
+```bash
+sudo mount -o remount,rw /
+```
+
 ### Update sources.list
 
 ```bash
@@ -211,14 +332,62 @@ deb http://deb.debian.org/debian bookworm-backports main non-free non-free-firmw
 
 ### Run the Upgrade
 
+**WARNING:** Do NOT use NFS for the package cache during upgrade. Network interruption during NFS access can corrupt the upgrade process.
+
 ```bash
 sudo apt update
+```
+
+**Note:** If you see errors about repository information changing, use:
+```bash
+sudo apt update --allow-releaseinfo-change
+```
+
+**Check disk space requirements before committing:**
+
+```bash
+sudo apt -o APT::Get::Trivial-Only=true full-upgrade
+```
+
+This shows how much space is needed without making changes. Ensure you have enough free space.
+
+**Phase 1 - Minimal upgrade (safer, no package removals):**
+
+```bash
+sudo apt upgrade --without-new-pkgs
+```
+
+**Phase 2 - Full upgrade:**
+
+```bash
 sudo apt full-upgrade
 ```
 
 **During upgrade:**
 - When prompted about config file conflicts: **show diff and decide case-by-case**
+- **Exception:** For `/etc/init.d/*` scripts, generally accept the maintainer's version (old version saved as `.dpkg-old`)
 - Review changes carefully before accepting maintainer's version or keeping yours
+- **If the display switches away** (common with kernel/graphics updates): use `Ctrl+Alt+F1` (from GUI) or `Alt+F1` (from console) to return to the upgrade terminal
+
+### Troubleshooting Upgrade Errors
+
+If you encounter errors during upgrade:
+
+**"Could not perform immediate configuration" error:**
+```bash
+sudo apt full-upgrade -o APT::Immediate-Configure=0
+```
+
+**Dependency loop blocking upgrade:**
+```bash
+sudo apt full-upgrade -o APT::Force-LoopBreak=1
+```
+
+**File conflicts from non-standard packages:**
+```bash
+sudo dpkg -r --force-depends <conflicting-package>
+# Then retry apt full-upgrade
+```
 
 ### Post-Upgrade Cleanup
 
