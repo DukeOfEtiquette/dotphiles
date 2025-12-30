@@ -236,7 +236,7 @@ function install_fonts () {
   fi
 
   # copy shared fonts
-  cp -r "$shared_dir/.fonts"/*.ttf "$HOME/.fonts/"
+  cp -r "$shared_dotfile_dir/.fonts"/*.ttf "$HOME/.fonts/"
 }
 
 # This function installs XFCE terminal config
@@ -268,8 +268,8 @@ function install_home_bin () {
   cp -ar "$HOME/bin" "$backup_olddir/"
 
   # copy shared bin scripts first
-  if [[ -d "$shared_dir/bin" ]]; then
-    cp -ar "$shared_dir/bin/"* "$HOME/bin/"
+  if [[ -d "$shared_dotfile_dir/bin" ]]; then
+    cp -ar "$shared_dotfile_dir/bin/"* "$HOME/bin/"
   fi
 
   # copy profile-specific bin scripts (may override shared)
