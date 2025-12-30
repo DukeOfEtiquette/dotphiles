@@ -121,7 +121,7 @@ export SPHINX_VELDUS_THEME_SRC="$VELDUS/sphinx_veldus_theme"
 alias vel="cd $VELDUS && code . && ls"
 
 # mmmmm sexy colors, https://github.com/trapd00r/LS_COLORS#installation
-. "$HOME/.local/share/lscolors.sh"
+. "$HOME/bin/lscolors.sh"
 
 # ******************************************************************
 # reboot directly to windows

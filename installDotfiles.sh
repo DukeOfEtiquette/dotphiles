@@ -265,9 +265,13 @@ function install_home_bin () {
   # MOVE anything in $HOME/bin to backup/bin
   cp -ar "$HOME/bin" "$backup_olddir/"
 
-  # copy these ./bin files to $HOME/bin
+  # copy shared bin scripts first
+  if [[ -d "$shared_dir/bin" ]]; then
+    cp -ar "$shared_dir/bin/"* "$HOME/bin/"
+  fi
+
+  # copy profile-specific bin scripts (may override shared)
   cp -ar "$profile_dir/bin" "$HOME/"
-  # sudo cp $profile_dir/bin/backup.sh /etc/init.d/backup
 }
 
 # This function runs all installation steps
