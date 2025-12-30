@@ -35,5 +35,5 @@ sleep $SLEEP_DUR
 set_window_size_pos "127.0.0.1" 2000 0 1600 1600
 set_window_size_pos $PROJECT_NAME 0 0 2000 2000
 # xfce4-terminal \
-#     --default-working-directory "/home/adam/src/$PROJECT_NAME" \
+#     --default-working-directory "$HOME/src/$PROJECT_NAME" \
 #     -T $PROJECT_NAME &
