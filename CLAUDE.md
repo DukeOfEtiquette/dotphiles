@@ -37,9 +37,28 @@ Each profile contains:
 - `home/` - Files symlinked to `$HOME` as dotfiles (e.g., `zshrc` → `~/.zshrc`)
 - `bin/` - Scripts copied to `$HOME/bin`
 - `.config/` - Config directories copied to `~/.config/` (i3status, dunst, xfce4/terminal)
-- `.fonts/` - Custom fonts copied to `~/.fonts/`
 
-Note: i3 config is shared across all profiles (in `shared/.config/i3/`), while i3status configs remain profile-specific.
+Shared resources (in `profiles/shared/`):
+- `.fonts/` - Custom fonts (Cascadia, FiraCode, Hack)
+- `.config/i3/` - i3 window manager config
+- `bin/` - Common scripts (lscolors.sh, backup_linux.sh)
+- `omz_themes/` - Oh-My-Zsh themes (wezm-duke)
+
+Note: i3status configs remain profile-specific as they reference hardware-specific interfaces.
+
+### Profile-Specific Notes
+
+**rogue:**
+- Has `zprofile` for login shell initialization (other profiles use only `zshrc`)
+- Uses async git prompt disabled: `zstyle ':omz:alpha:lib:git' async-prompt no`
+- Contains Maverick build scripts (mavBuild, mavPull, mavRebuild, etc.)
+
+**ts3d:**
+- Focused on TS3D development with specialized clone/docker scripts
+- Uses `bat` aliased to `batcat` (Debian naming convention)
+
+**gomez:**
+- Contains some macOS-specific aliases in bashrc (legacy)
 
 ### Installation Behavior
 
