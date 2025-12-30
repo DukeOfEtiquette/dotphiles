@@ -235,8 +235,8 @@ function install_fonts () {
     mv "$HOME/.fonts"/*.ttf "$backup_olddir/.fonts/"
   fi
 
-  # copy these Linux .font
-  cp -r "$profile_dir/.fonts"/*.ttf "$HOME/.fonts/"
+  # copy shared fonts
+  cp -r "$shared_dir/.fonts"/*.ttf "$HOME/.fonts/"
 }
 
 # This function installs XFCE terminal config
