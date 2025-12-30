@@ -1,25 +1,30 @@
-# Debian 13 (Trixie) Upgrade Checklist
+# Debian 12 (Bookworm) Upgrade Checklist
 
-Upgrading from Debian 12 (Bookworm) to Debian 13 (Trixie).
+Upgrading from Debian 11 (Bullseye) to Debian 12 (Bookworm).
 
-This is **Part 2** of a sequential upgrade path: Bullseye → Bookworm → Trixie.
-
-**Prerequisite**: Complete `BOOKWORM_UPGRADE_CHECKLIST.md` first and verify system stability.
+This is **Part 1** of a sequential upgrade path: Bullseye → Bookworm → Trixie.
 
 ---
 
 ## Pre-Upgrade Checklist
 
+### Create Backup Directory
+
+```bash
+sudo mkdir -p /backup
+sudo chown $USER:$USER /backup
+```
+
 ### Backups
 
 - [ ] Backup /etc:
   ```bash
-  sudo tar czf /backup/etc-backup-bookworm.tar.gz /etc
+  sudo tar czf /backup/etc-backup-bullseye.tar.gz /etc
   ```
 
 - [ ] Backup /home:
   ```bash
-  tar czf /backup/home-backup-bookworm.tar.gz ~
+  tar czf /backup/home-backup-bullseye.tar.gz ~
   ```
 
 - [ ] Verify dotfiles repo is clean (required):
@@ -32,22 +37,22 @@ This is **Part 2** of a sequential upgrade path: Bullseye → Bookworm → Trixi
 
 - [ ] List manually installed packages:
   ```bash
-  apt-mark showmanual > /backup/my-packages-bookworm.txt
+  apt-mark showmanual > /backup/my-packages-bullseye.txt
   ```
 
 - [ ] Document current kernel:
   ```bash
-  uname -r | tee /backup/kernel-bookworm.txt
+  uname -r | tee /backup/kernel-bullseye.txt
   ```
 
 - [ ] Document Python version:
   ```bash
-  python3 --version | tee /backup/python-bookworm.txt
+  python3 --version | tee /backup/python-bullseye.txt
   ```
 
 - [ ] Document zsh version:
   ```bash
-  zsh --version | tee /backup/zsh-bookworm.txt
+  zsh --version | tee /backup/zsh-bullseye.txt
   ```
 
 - [ ] Verify no failed systemd units:
@@ -77,18 +82,78 @@ sudo apt update && sudo apt upgrade
 
 ---
 
+## Remove Unused Applications
+
+Remove these applications and their repositories before upgrade:
+
+```bash
+# Remove azure-cli
+sudo apt remove --purge azure-cli
+sudo rm /etc/apt/sources.list.d/azure-cli.list
+
+# Remove lutris
+sudo apt remove --purge lutris
+sudo rm /etc/apt/sources.list.d/lutris.list
+
+# Remove opera
+sudo apt remove --purge opera-stable
+sudo rm /etc/apt/sources.list.d/opera-stable.list
+
+# Remove skype (both apt and snap)
+sudo apt remove --purge skypeforlinux
+sudo rm /etc/apt/sources.list.d/skype-stable.list
+sudo snap remove skype
+
+# Remove teams
+sudo apt remove --purge teams
+sudo rm /etc/apt/sources.list.d/teams.list
+
+# Clean up orphaned dependencies
+sudo apt autoremove
+```
+
+---
+
+## Switch Seafile to Official Debian Package
+
+The third-party Seafile repo may not support Bookworm. Switch to Debian's official package:
+
+```bash
+# Remove third-party seafile
+sudo apt remove --purge seafile-gui seafile-daemon
+sudo rm /etc/apt/sources.list.d/seafile.list
+
+# Install from Debian repos (already available in bullseye)
+sudo apt update
+sudo apt install seafile-gui
+```
+
+Note: Version will be 7.0.10 on Bullseye, upgrading to 8.0.10 on Bookworm.
+
+---
+
+## Clean Up Repository Files
+
+Remove stale `.save` backup files:
+
+```bash
+sudo rm -f /etc/apt/sources.list.d/*.save
+```
+
+---
+
 ## Disable Third-Party Repositories
 
 Disable these repos before upgrade (will re-enable with updated URLs after):
 
 ```bash
-# Docker (references bookworm)
+# Docker (references bullseye)
 sudo mv /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.disabled
 
-# pgAdmin4 (references bookworm)
+# pgAdmin4 (references bullseye)
 sudo mv /etc/apt/sources.list.d/pgadmin4.list /etc/apt/sources.list.d/pgadmin4.list.disabled
 
-# VirtualBox (references bookworm)
+# VirtualBox (references bullseye)
 sudo mv /etc/apt/sources.list.d/virtualbox.list /etc/apt/sources.list.d/virtualbox.list.disabled
 ```
 
@@ -119,25 +184,29 @@ tmux attach -t upgrade
 
 ```bash
 # Backup current sources.list
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.bookworm.bak
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bullseye.bak
 
-# Update to trixie
-sudo sed -i 's/bookworm/trixie/g' /etc/apt/sources.list
+# Update to bookworm
+sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
+
+# Add non-free-firmware component (new in Bookworm)
+# Edit sources.list and add 'non-free-firmware' after 'non-free' on each line
+sudo nano /etc/apt/sources.list
 ```
 
-Your sources.list should look like this after:
+Your sources.list should look like this after editing:
 
 ```
-deb http://deb.debian.org/debian trixie main non-free non-free-firmware
-deb-src http://deb.debian.org/debian trixie main non-free non-free-firmware
+deb http://deb.debian.org/debian bookworm main non-free non-free-firmware
+deb-src http://deb.debian.org/debian bookworm main non-free non-free-firmware
 
-deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
-deb-src http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb-src http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
 
-deb http://deb.debian.org/debian/ trixie-updates main contrib non-free non-free-firmware
-deb-src http://deb.debian.org/debian/ trixie-updates main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware
 
-deb http://deb.debian.org/debian trixie-backports main non-free non-free-firmware
+deb http://deb.debian.org/debian bookworm-backports main non-free non-free-firmware
 ```
 
 ### Run the Upgrade
@@ -173,8 +242,8 @@ After reboot, update and re-enable the disabled repositories:
 ### Docker
 
 ```bash
-# Create updated docker.list for trixie
-echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian trixie stable" | sudo tee /etc/apt/sources.list.d/docker.list
+# Create updated docker.list for bookworm
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
 # Remove old disabled file
 sudo rm /etc/apt/sources.list.d/docker.list.disabled
@@ -182,38 +251,19 @@ sudo rm /etc/apt/sources.list.d/docker.list.disabled
 
 ### pgAdmin4
 
-**Note**: pgAdmin4 trixie support was added late. If the repository doesn't work, see fallback below.
-
 ```bash
-# Create updated pgadmin4.list for trixie
-echo "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/trixie pgadmin4 main" | sudo tee /etc/apt/sources.list.d/pgadmin4.list
+# Create updated pgadmin4.list for bookworm
+echo "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/bookworm pgadmin4 main" | sudo tee /etc/apt/sources.list.d/pgadmin4.list
 
 # Remove old disabled file
 sudo rm /etc/apt/sources.list.d/pgadmin4.list.disabled
 ```
 
-**Fallback if pgAdmin4 apt repo fails:**
-
-```bash
-# Remove the apt repo
-sudo rm /etc/apt/sources.list.d/pgadmin4.list
-
-# Install via pip in a virtualenv
-python3 -m venv ~/pgadmin4-venv
-source ~/pgadmin4-venv/bin/activate
-pip install pgadmin4
-
-# To run pgAdmin4:
-# source ~/pgadmin4-venv/bin/activate && pgadmin4
-```
-
 ### VirtualBox
 
-**Known Issue**: VirtualBox on Trixie has dependency issues (`libgtk2.0-0` and `libvpx7` are missing). Everything except **video recording** will work.
-
 ```bash
-# Create updated virtualbox.list for trixie
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle_vbox_2016.gpg] http://download.virtualbox.org/virtualbox/debian trixie contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
+# Create updated virtualbox.list for bookworm
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle_vbox_2016.gpg] http://download.virtualbox.org/virtualbox/debian bookworm contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
 
 # Remove old disabled file
 sudo rm /etc/apt/sources.list.d/virtualbox.list.disabled
@@ -290,9 +340,9 @@ systemctl status cups.service
 
 - [ ] Brave browser launches
 - [ ] Google Chrome launches
-- [ ] Seafile client works (note: upgrades to v9.0.13 from Debian repos)
-- [ ] VirtualBox works (video recording will NOT work due to missing dependencies)
-- [ ] pgAdmin4 works (either from apt or pip fallback)
+- [ ] Seafile client works (may need to re-login)
+- [ ] VirtualBox works (if you use VMs)
+- [ ] pgAdmin4 works
 - [ ] Steam launches
 
 ### Snap Applications
@@ -311,7 +361,7 @@ systemctl status cups.service
 
 ### Hardware
 
-- [ ] Trezor hardware wallet works:
+- [ ] Trezor hardware wallet works (if applicable):
   ```bash
   systemctl status trezord.service
   ```
@@ -346,14 +396,15 @@ If upgrade fails badly:
 2. Mount root partition
 3. Restore /etc backup:
    ```bash
-   sudo tar xzf /backup/etc-backup-bookworm.tar.gz -C /
+   sudo tar xzf /backup/etc-backup-bullseye.tar.gz -C /
    ```
 4. Chroot and fix package issues, or reinstall
 
 ---
 
-## Upgrade Complete
+## Next Steps
 
-Congratulations! You have successfully upgraded from Debian 11 (Bullseye) through Debian 12 (Bookworm) to Debian 13 (Trixie).
+After completing this checklist and verifying everything works on Bookworm:
 
-Keep the backup files in `/backup/` for a few weeks until you're confident the system is stable, then remove them to reclaim disk space.
+1. Use the system normally for a few days to ensure stability
+2. Proceed to `TRIXIE_UPGRADE_CHECKLIST.md` for the Bookworm → Trixie upgrade
