@@ -131,6 +131,7 @@ source "$HOME/bin/lscolors.sh"
 # ENV config
 export EDITOR='/usr/bin/code'
 export ROGUE_ROOT="/home/adam/rogue"
+export ROGUE_BUILDS="$ROGUE_ROOT/builds"
 export MAV_SRC="$ROGUE_ROOT/src/maverick"
 export MAV_DEBUG="$ROGUE_ROOT/builds/debug"
 export PATH=$PATH:$ROGUE_ROOT/builds/mav_tools/animation_maker/cram
