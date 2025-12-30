@@ -9,5 +9,6 @@ secrets/.env.*
 !secrets/.env.example
 *.pem
 *.key
+*.ovpn
 *_credentials*
 *_secret*
