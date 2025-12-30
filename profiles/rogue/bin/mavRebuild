@@ -31,9 +31,9 @@ if [ "$2" = "--rm" ]; then
     RM_DIR='rm'
 fi
 
-SOURCE_DIR=$HOME/rogue/src/maverick
-BUILD_DIR=$HOME/builds/$PLATFORM/debug
-INSTALL_DIR=$HOME/builds/$PLATFORM/install
+SOURCE_DIR=$ROGUE_ROOT/src/maverick
+BUILD_DIR=$ROGUE_ROOT/builds/$PLATFORM/debug
+INSTALL_DIR=$ROGUE_ROOT/builds/$PLATFORM/install
 
 # cd ~/builds/debug/platinum
 cd $BUILD_DIR

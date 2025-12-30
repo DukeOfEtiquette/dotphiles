@@ -1,5 +1,5 @@
 #!/bin/bash
 
-MAV_DEBUG="$HOME/builds/debug"
+MAV_DEBUG="$ROGUE_ROOT/builds/debug"
 cd $MAV_DEBUG
 $MAV_DEBUG/maverick

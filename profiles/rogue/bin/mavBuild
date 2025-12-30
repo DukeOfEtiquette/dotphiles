@@ -1,13 +1,13 @@
 #!/bin/bash
 
-ENCORE_DEBUG="$HOME/builds/encore/debug"
+ENCORE_DEBUG="$ROGUE_ROOT/builds/encore/debug"
 cd $ENCORE_DEBUG
 make -j26
 
-PLATINUM_DEBUG="$HOME/builds/platinum/debug"
+PLATINUM_DEBUG="$ROGUE_ROOT/builds/platinum/debug"
 cd $PLATINUM_DEBUG
 make -j26
 
-ELITE_DEBUG="$HOME/builds/elite/debug"
+ELITE_DEBUG="$ROGUE_ROOT/builds/elite/debug"
 cd $ELITE_DEBUG
 make -j26
