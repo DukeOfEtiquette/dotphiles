@@ -24,7 +24,7 @@ BACKUP_FILE=$BACKUP_DIR/data-$DATE.tar.gz
 # Backup home directory
 log "Starting archive, saving to $BACKUP_FILE"
 echo "$DATE" >> "$HOME/backup_timestamp"
-tar -zcvpf "$BACKUP_FILE" -C /home/adamduquette \
+tar -zcvpf "$BACKUP_FILE" -C "$HOME" \
   --exclude='./.*' \
   --exclude='ts3d' \
   --exclude='ts3d_communicator_logs' \
