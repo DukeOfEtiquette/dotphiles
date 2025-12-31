@@ -20,7 +20,7 @@ The bootstrap script handles everything: packages, shell setup, development tool
 If your system is already set up and you just need to install/update dotfiles:
 
 ```bash
-./installDotfiles.sh --profile <gomez|rogue|ts3d>
+./updateDotfiles.sh --profile <gomez|rogue|ts3d>
 ```
 
 ## Bootstrap Options
@@ -62,7 +62,7 @@ The bootstrap script installs (in order):
 6. **Node.js** - via nvm
 7. **Docker** - Docker CE with user group setup
 8. **Apps** - Chrome, VSCode, Discord
-9. **Dotfiles** - symlinks and configs via installDotfiles.sh
+9. **Dotfiles** - symlinks and configs via updateDotfiles.sh
 
 ## Post-Installation
 
@@ -86,7 +86,7 @@ Secrets are NOT stored in this repository. After setup:
 ```
 dotfiles/
 ├── bootstrap.sh              # Entry point for fresh installs
-├── installDotfiles.sh        # Dotfile symlink/copy installer
+├── updateDotfiles.sh         # Dotfile symlink/copy installer
 ├── setup/                    # Modular setup scripts
 │   ├── lib/                  # Shared functions
 │   ├── manifests/            # Package lists
@@ -112,8 +112,8 @@ dotfiles/
 # Non-interactive install
 ./bootstrap.sh --profile rogue --yes
 
-# Just install dotfiles (existing system)
-./installDotfiles.sh --profile rogue
+# Update dotfiles (existing system)
+./updateDotfiles.sh --profile rogue
 
 # Find wifi interface for i3status
 iw dev | grep Interface

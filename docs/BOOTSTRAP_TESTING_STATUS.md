@@ -37,7 +37,7 @@ dotfiles/
 │   ├── 06-nvm.sh                     # Node Version Manager
 │   ├── 07-docker.sh                  # Docker CE
 │   ├── 08-apps-external.sh           # Chrome, VSCode, Discord
-│   ├── 09-dotfiles.sh                # Runs installDotfiles.sh
+│   ├── 09-dotfiles.sh                # Runs updateDotfiles.sh
 │   └── 10-post-install.sh            # Final verification
 ├── docs/
 │   ├── SETUP_GUIDE.md
@@ -53,7 +53,7 @@ dotfiles/
 
 ### Files NOT Modified
 
-- `installDotfiles.sh` - Kept unchanged (called by stage 09)
+- `updateDotfiles.sh` - Kept unchanged (called by stage 09)
 
 ---
 

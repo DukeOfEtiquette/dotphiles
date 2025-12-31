@@ -563,7 +563,7 @@ systemctl status cups.service
 - [ ] Re-run dotfiles installer:
   ```bash
   cd ~/.everc/dotfiles
-  ./installDotfiles.sh --profile rogue
+  ./updateDotfiles.sh --profile rogue
   ```
 
 ---
@@ -1101,7 +1101,7 @@ systemctl status cups.service
 - [ ] Re-run dotfiles installer:
   ```bash
   cd ~/.everc/dotfiles
-  ./installDotfiles.sh --profile rogue
+  ./updateDotfiles.sh --profile rogue
   ```
 
 ---

@@ -1,6 +1,6 @@
 #!/bin/bash
 # setup/09-dotfiles.sh - Install dotfiles
-# Runs: installDotfiles.sh, installs LS_COLORS
+# Runs: updateDotfiles.sh, installs LS_COLORS
 
 set -euo pipefail
 
@@ -18,8 +18,8 @@ main() {
 
     # Verify we're in the right place
     log_step "Verifying dotfiles repository..."
-    if [[ ! -f "$DOTFILES_ROOT/installDotfiles.sh" ]]; then
-        log_error "installDotfiles.sh not found at $DOTFILES_ROOT"
+    if [[ ! -f "$DOTFILES_ROOT/updateDotfiles.sh" ]]; then
+        log_error "updateDotfiles.sh not found at $DOTFILES_ROOT"
         log_error "Make sure you're running from the dotfiles repository"
         exit 1
     fi
@@ -29,10 +29,10 @@ main() {
     log_step "Installing dotfiles for profile: $profile..."
     if ! check_complete "dotfiles-installed-$profile"; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
-            log_info "[DRY RUN] Would run: ./installDotfiles.sh --profile $profile"
+            log_info "[DRY RUN] Would run: ./updateDotfiles.sh --profile $profile"
         else
             cd "$DOTFILES_ROOT"
-            ./installDotfiles.sh --profile "$profile"
+            ./updateDotfiles.sh --profile "$profile"
             log_success "Dotfiles installed for profile: $profile"
         fi
         mark_complete "dotfiles-installed-$profile"

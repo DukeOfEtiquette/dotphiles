@@ -164,10 +164,10 @@ Some packages have different names on Debian:
 
 ### Symlinks not created
 
-Run installDotfiles.sh manually:
+Run updateDotfiles.sh manually:
 ```bash
 cd ~/.everc/dotfiles
-./installDotfiles.sh --profile rogue
+./updateDotfiles.sh --profile rogue
 ```
 
 ### Conflicts with existing files

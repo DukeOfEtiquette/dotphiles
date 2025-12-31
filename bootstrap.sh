@@ -60,7 +60,7 @@ Stages:
   6  - NVM (Node Version Manager)
   7  - Docker
   8  - External apps (Chrome, VSCode, Discord)
-  9  - Dotfiles (runs installDotfiles.sh)
+  9  - Dotfiles (runs updateDotfiles.sh)
   10 - Post-install (font cache, verification)
 
 Examples:

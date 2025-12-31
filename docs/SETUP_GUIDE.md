@@ -49,7 +49,7 @@ The bootstrap runs through 11 stages:
 | 6 | 06-nvm.sh | Node Version Manager |
 | 7 | 07-docker.sh | Docker CE |
 | 8 | 08-apps-external.sh | Chrome, VSCode, Discord |
-| 9 | 09-dotfiles.sh | Runs installDotfiles.sh |
+| 9 | 09-dotfiles.sh | Runs updateDotfiles.sh |
 | 10 | 10-post-install.sh | Font cache, final verification |
 
 ## Idempotency
@@ -91,6 +91,55 @@ After bootstrap completes:
 2. **Add SSH key to GitHub** - `cat ~/.ssh/id_ed25519.pub`
 3. **Update i3status config** - Set correct network interface names in `~/.config/i3status/config`
 4. **Enable VS Code Settings Sync** - For your extensions and settings
+
+## Day 2 Operations
+
+After initial setup, use `updateDotfiles.sh` for ongoing dotfile changes - **not** `bootstrap.sh`.
+
+### When to Use Each Script
+
+| Script | Use Case |
+|--------|----------|
+| `bootstrap.sh` | Fresh machine setup (one-time, installs packages + dotfiles) |
+| `updateDotfiles.sh` | Ongoing dotfile updates (fast, dotfiles only) |
+
+### Updating Dotfiles Workflow
+
+1. **Edit the source files** in `~/.everc/dotfiles/profiles/<profile>/`
+   - Edit files in the repo, not the symlinked copies in `$HOME`
+   - Example: edit `profiles/rogue/home/zshrc`, not `~/.zshrc`
+
+2. **Apply changes** by running:
+   ```bash
+   ./updateDotfiles.sh --profile rogue
+   ```
+
+3. **Reload your shell** (if you changed shell configs):
+   ```bash
+   source ~/.zshrc
+   ```
+
+### Quick Refresh Alias
+
+Each profile includes a `dots_refresh` alias that combines these steps:
+```bash
+dots_refresh  # cd to dotfiles, run updateDotfiles.sh, source zshrc
+```
+
+### Preview Changes
+
+To see what would change without applying:
+```bash
+./updateDotfiles.sh --profile rogue --dry-run
+```
+
+### What updateDotfiles.sh Does
+
+- Backs up existing configs to `~/.everc/dotfiles_bck/`
+- Creates symlinks for home directory dotfiles (`~/.zshrc`, `~/.vimrc`, etc.)
+- Copies bin scripts to `~/bin/`
+- Copies `.config/` directories (dunst, terminal, i3status)
+- Installs oh-my-zsh themes and backgrounds
 
 ## Secrets
 

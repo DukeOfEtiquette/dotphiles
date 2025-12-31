@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 ###############################################################################
-# ./installDotfiles
+# ./updateDotfiles
 #
 # This script will:
 #    1) Backup all relevant dotfiles

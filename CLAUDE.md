@@ -25,12 +25,12 @@ Options:
 
 Install/update dotfiles only (assumes packages already installed):
 ```bash
-./installDotfiles.sh --profile <profile_name>
+./updateDotfiles.sh --profile <profile_name>
 ```
 
 Preview changes without making them:
 ```bash
-./installDotfiles.sh --profile <profile_name> --dry-run
+./updateDotfiles.sh --profile <profile_name> --dry-run
 ```
 
 Valid profiles: `gomez`, `rogue`, `ts3d`
@@ -42,7 +42,7 @@ The install script backs up existing dotfiles to `~/.everc/dotfiles_bck/` before
 ### Directory Structure
 
 - `bootstrap.sh` - Entry point for fresh machine setup
-- `installDotfiles.sh` - Dotfile symlink/copy installer
+- `updateDotfiles.sh` - Dotfile symlink/copy installer
 - `setup/` - Modular setup scripts for bootstrap
   - `lib/` - Shared functions (common.sh, packages.sh, verify.sh)
   - `manifests/` - Package lists (packages-core.txt, packages-dev.txt, packages-desktop.txt)
@@ -99,14 +99,14 @@ The `bootstrap.sh` script runs these stages in order:
 | 6 | 06-nvm.sh | Node Version Manager |
 | 7 | 07-docker.sh | Docker CE |
 | 8 | 08-apps-external.sh | Chrome, VSCode, Discord |
-| 9 | 09-dotfiles.sh | Runs installDotfiles.sh |
+| 9 | 09-dotfiles.sh | Runs updateDotfiles.sh |
 | 10 | 10-post-install.sh | Font cache, final verification |
 
 Progress is tracked in `~/.everc/.setup-state` for idempotency.
 
 ### Installation Behavior
 
-The `installDotfiles.sh` script:
+The `updateDotfiles.sh` script:
 1. Expects to run from `$HOME/.everc/dotfiles`
 2. Sets up the `secrets/` directory with proper permissions
 3. Backs up existing configs before installing

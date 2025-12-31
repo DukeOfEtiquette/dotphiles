@@ -105,7 +105,7 @@ source $ZSH/oh-my-zsh.sh
 export DOTFILES="$HOME/.everc/dotfiles"
 export DOTPROFILE="gomez"
 alias dot="cd $DOTFILES"
-alias dots_refresh='dot && ./installDotfiles.sh --profile $DOTPROFILE && source ~/.zshrc && popd'
+alias dots_refresh='dot && ./updateDotfiles.sh --profile $DOTPROFILE && source ~/.zshrc && popd'
 alias vz="vim $DOTFILES/profiles/gomez/home/zshrc"
 
 # Load secrets (API keys, tokens, etc.) - stored in $DOTFILES/secrets/
