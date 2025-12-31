@@ -1,156 +1,124 @@
 # dotfiles
 
-## Set up new machine
+Dotfiles management system for Linux workstations with automated fresh machine setup.
 
-Take the following steps to set up a new machine from scratch:
+## Quick Start (Fresh Debian 11/12/13)
 
-1. [Start here](#start-here) (install Linux OS and desktop environment)
-1. [Install standard debian packages](#standard-debian-package-installs)
-1. [Install shell](#install-shell)
-1. [Download/install Dotfiles project](#install-dotfiles)
-1. [Download/install additional tools](#additional-tools) not available in `apt`
-1. [Review tips 'n' tricks](#useful-linux-tips-n-tricks)
+```bash
+# Clone the repository
+git clone https://github.com/DukeOfEtiquette/dotfiles.git ~/.everc/dotfiles
+cd ~/.everc/dotfiles
 
-   - **NOTE:** You may want to checkout any `onetimeInstalls.sh` scripts found in a profile.
-     Run them with `--yes` to skip prompts once you've reviewed the code.
+# Run bootstrap
+./bootstrap.sh --profile rogue
+```
 
-### Start here
+The bootstrap script handles everything: packages, shell setup, development tools, and dotfile installation.
 
-[Lubuntu+i3wm tutorial](https://feeblenerd.blogspot.com/2016/08/walkthrough-for-lubuntu-with-i3-tiling.html)
+## For Existing Systems
 
+If your system is already set up and you just need to install/update dotfiles:
 
-### Standard debian package installs
+```bash
+./installDotfiles.sh --profile <gomez|rogue|ts3d>
+```
 
-$ `sudo apt update && sudo apt install git git-lfs cifs-utils arandr xfce4-terminal xclip maim flameshot xdotool pavucontrol bat tmux`
+## Bootstrap Options
 
-  - **xfce4-terminal** terminal emulator of choice
+```
+./bootstrap.sh --profile <profile> [options]
 
-  - **arandr** GUI for resolution/display configurations (generates xrandr commands)
+Options:
+  --profile, -p <name>   Profile: rogue, gomez, ts3d (required)
+  --yes, -y              Skip prompts (auto-confirm)
+  --stage, -s <N>        Start from stage N (0-10)
+  --dry-run              Preview without changes
+  --reset                Clear state and start fresh
+```
 
-  - **cifs-utils** required to mount drives in Berkeley
+## Profiles
 
-  - **xclip** allows CLI to clipboard selections, useful copying stdout
+| Profile | Description |
+|---------|-------------|
+| **rogue** | Full Maverick dev environment with build toolchain |
+| **ts3d** | TS3D development focus with Docker and git-lfs |
+| **gomez** | General workstation setup |
 
-  - **maim** screenshots
+## Documentation
 
-  - **flameshot** screenshoots as well
+- [Setup Guide](docs/SETUP_GUIDE.md) - Detailed setup walkthrough
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Debian Upgrades](docs/UPGRADE_DEBIAN.md) - Version upgrade checklists
 
-  - **xdotool** programmatically simulate keyboard input and mouse activity
+## What Gets Installed
 
-  - **pavucontrol** graphical volume control
+The bootstrap script installs (in order):
 
-  - **bat** better than cat
+1. **Core packages** - curl, wget, git, git-lfs
+2. **Shell** - zsh, oh-my-zsh
+3. **Git config** - user setup, SSH key generation
+4. **Dev tools** - cmake, make, gcc, build-essential
+5. **Desktop** - i3, xfce4-terminal, utilities
+6. **Node.js** - via nvm
+7. **Docker** - Docker CE with user group setup
+8. **Apps** - Chrome, VSCode, Discord
+9. **Dotfiles** - symlinks and configs via installDotfiles.sh
 
-  - **tmux** terminal multiplexer
+## Post-Installation
 
-### Install shell
+After bootstrap completes:
 
-1. Follow instructions on [zsh wiki](https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH)
+1. **Log out and back in** - Required for docker group and zsh
+2. **Add SSH key to GitHub** - `cat ~/.ssh/id_ed25519.pub`
+3. **Update i3status config** - Set correct network interface names
+4. **Enable VS Code Settings Sync**
 
-1. Follow instructions on [ohmyzsh wiki](https://github.com/ohmyzsh/ohmyzsh/wiki)
+## Secrets Management
 
-$ `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
+Secrets are NOT stored in this repository. After setup:
 
-### Install dotfiles
+1. Copy the template: `cp secrets/.env.example secrets/.env`
+2. Edit with your credentials
+3. Secrets load automatically via `secrets.sh`
 
-1. $ `git clone https://github.com/DukeOfEtiquette/dotfiles.git && cd dotfiles`
+## Directory Structure
 
-1. $ `mkdir -p ~/screenshots`
-   - Review `$HOME/.config/i3/config`, there are system bindings for taking screenshots
+```
+dotfiles/
+├── bootstrap.sh              # Entry point for fresh installs
+├── installDotfiles.sh        # Dotfile symlink/copy installer
+├── setup/                    # Modular setup scripts
+│   ├── lib/                  # Shared functions
+│   ├── manifests/            # Package lists
+│   └── 00-10-*.sh           # Stage scripts
+├── profiles/                 # Machine-specific configs
+│   ├── rogue/
+│   ├── ts3d/
+│   ├── gomez/
+│   └── shared/
+├── docs/                     # Documentation
+└── secrets/                  # Gitignored credentials
+```
 
-1. Verify `installDotfiles` is setup properly and run: `./installDotfiles --profile gomez`
+## Useful Commands
 
-1. $ `source ~/.zshrc`
+```bash
+# Preview bootstrap without changes
+./bootstrap.sh --profile rogue --dry-run
 
-## Additional Tools
+# Resume from a specific stage
+./bootstrap.sh --profile rogue --stage 5
 
-### Chrome
+# Non-interactive install
+./bootstrap.sh --profile rogue --yes
 
-[Chrome](https://www.google.com/chrome/)
+# Just install dotfiles (existing system)
+./installDotfiles.sh --profile rogue
 
-### VSCode
+# Find wifi interface for i3status
+iw dev | grep Interface
+```
 
-[VSCode](https://code.visualstudio.com/download)
+## License
 
-**Turn on Settings Sync!**
-
-### Slack
-
-[Slack](https://linuxize.com/post/how-to-install-slack-on-ubuntu-18-04/)
-
-### Docker
-
-[docker](https://github.com/docker/docker-install)
-
-**RUN THIS** `sudo usermod -a -G docker $USER`
-
-**Logout after adding user to the docker group**
-
-### Node
-
-[nvm](https://github.com/nvm-sh/nvm)
-
-`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash`
-
-### Dunst
-
-Custom notification window (comes with Lubuntu)
-
-[Dunst](https://dunst-project.org/documentation/)
-
-## Useful Linux tips 'n' tricks
-
-### Create new linux user
-
-For this example, let us assume we are adding a new user named `spare`
-
-1. Create the user: `sudo adduser spare`
-
-1. Add to sudo group: `sudo usermod -a -G sudo spare`
-
-1. Log into new user: `su - spare`
-
-1. Install oh-my-zsh for user
-
-   - $ `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
-
-1. Clone this repo
-
-   - $ `git clone https://github.com/DukeOfEtiquette/dotfiles.git && cd dotfiles`
-
-1. Install dotfiles
-
-   - $ `./installDotfiles.sh && source ~/.zshrc`
-
-### Rename linux user
-
-For this example, let us assume the following old and new user names:
-
-- **old user name:** alpha
-- **new user name:** beta
-
-1. Update user's name
-
-   - $ `sudo usermod -l beta alpha`
-
-1. Update user's group name
-
-   - $ `sudo groupmod --new-name beta alpha`
-
-### Delete linux user
-
-For this example, let us assume we are deleting the user named `spare`
-
-1. Ensure you are logged into a user that is not the one intended for removal
-
-1. Kill running processes: $ `sudo killall -u spare`
-
-1. Delete and remove home directory: $ `sudo userdel -r spare`
-
-### Get wifi device name for i3status
-
-`iw dev | grep "Interface" | awk -F ' ' '{print $2}'`
-
-### Connect to wifi with NetworkManager TUI
-
-`nmtui`
+Personal dotfiles repository.

@@ -181,7 +181,7 @@ function install_homedir () {
   done
 }
 
-# This function installs i3 and i3status configs
+# This function installs i3 and i3status configs (ts3d profile only)
 function install_i3config () {
   printf "### INSTALLING i3 CONFIG ###\n"
   if $DRY_RUN; then echo "[dry-run] Would install i3 configs"; return; fi
@@ -200,8 +200,8 @@ function install_i3config () {
     mv "$HOME/.config/i3status/config" "$backup_olddir/.config/i3status/"
   fi
 
-  # copy i3 config from shared, i3status from profile
-  cp -r "$shared_dotfile_dir/.config/i3"/* "$HOME/.config/i3/"
+  # copy i3 and i3status configs from ts3d profile
+  cp -r "$profile_dir/.config/i3"/* "$HOME/.config/i3/"
   cp -r "$profile_dir/.config/i3status"/* "$HOME/.config/i3status/"
 }
 
@@ -289,7 +289,10 @@ function install_all () {
 
   # profile-specific configs
   install_homedir
-  install_i3config
+  # i3 config only for ts3d profile
+  if [[ "$profile" == "ts3d" ]]; then
+    install_i3config
+  fi
   install_dunst
   install_fonts
   install_terminal

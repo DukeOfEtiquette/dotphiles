@@ -4,11 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a dotfiles management system for Linux workstations using zsh, i3wm, and xfce4-terminal. The repository manages configuration files across multiple machine profiles.
+This is a dotfiles management system for Linux workstations using zsh, i3wm, and xfce4-terminal. The repository manages configuration files across multiple machine profiles and provides automated fresh machine setup.
 
 ## Key Commands
 
-Install dotfiles for a specific profile:
+### Fresh Machine Setup (Debian 11/12/13)
+
+Bootstrap a fresh machine with everything installed:
+```bash
+./bootstrap.sh --profile <profile_name>
+```
+
+Options:
+- `--yes` - Skip prompts (auto-confirm)
+- `--stage N` - Resume from stage N (0-10)
+- `--dry-run` - Preview without changes
+- `--reset` - Clear state and start fresh
+
+### Existing Systems
+
+Install/update dotfiles only (assumes packages already installed):
 ```bash
 ./installDotfiles.sh --profile <profile_name>
 ```
@@ -26,10 +41,19 @@ The install script backs up existing dotfiles to `~/.everc/dotfiles_bck/` before
 
 ### Directory Structure
 
+- `bootstrap.sh` - Entry point for fresh machine setup
+- `installDotfiles.sh` - Dotfile symlink/copy installer
+- `setup/` - Modular setup scripts for bootstrap
+  - `lib/` - Shared functions (common.sh, packages.sh, verify.sh)
+  - `manifests/` - Package lists (packages-core.txt, packages-dev.txt, packages-desktop.txt)
+  - `00-10-*.sh` - Stage scripts (preflight, packages, shell, git, docker, etc.)
 - `profiles/` - Machine-specific configurations
   - `gomez/`, `rogue/`, `ts3d/` - Individual machine profiles
   - `shared/` - Common files used across all profiles (backgrounds, i3 config, oh-my-zsh themes, tmux sessions)
-- `installDotfiles.sh` - Main installation script
+- `docs/` - Documentation
+  - `SETUP_GUIDE.md` - Detailed setup walkthrough
+  - `TROUBLESHOOTING.md` - Common issues and solutions
+  - `UPGRADE_DEBIAN.md` - Version upgrade checklists
 
 ### Profile Structure
 
@@ -59,6 +83,26 @@ Note: i3status configs remain profile-specific as they reference hardware-specif
 
 **gomez:**
 - Contains some macOS-specific aliases in bashrc (legacy)
+
+### Bootstrap Stages
+
+The `bootstrap.sh` script runs these stages in order:
+
+| Stage | Script | Description |
+|-------|--------|-------------|
+| 0 | 00-preflight.sh | System checks (OS, sudo, network, disk) |
+| 1 | 01-packages-core.sh | Core packages (curl, wget, git) |
+| 2 | 02-shell.sh | zsh and oh-my-zsh |
+| 3 | 03-git-config.sh | Git user config, SSH key generation |
+| 4 | 04-packages-dev.sh | Build toolchain (cmake, make, gcc) |
+| 5 | 05-packages-desktop.sh | Desktop environment (i3, terminal) |
+| 6 | 06-nvm.sh | Node Version Manager |
+| 7 | 07-docker.sh | Docker CE |
+| 8 | 08-apps-external.sh | Chrome, VSCode, Discord |
+| 9 | 09-dotfiles.sh | Runs installDotfiles.sh |
+| 10 | 10-post-install.sh | Font cache, final verification |
+
+Progress is tracked in `~/.everc/.setup-state` for idempotency.
 
 ### Installation Behavior
 

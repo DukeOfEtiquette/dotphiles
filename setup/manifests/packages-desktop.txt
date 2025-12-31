@@ -1,0 +1,30 @@
+# Desktop environment packages
+# Terminal, utilities, and common desktop tools
+
+# Notifications (works with any desktop)
+dunst
+
+# Terminal and clipboard
+xfce4-terminal
+xclip
+
+# Screenshots
+maim
+flameshot
+
+# Display and input tools
+arandr
+xdotool
+wmctrl
+
+# Audio
+pavucontrol
+pulseaudio
+
+# Utilities
+bat
+tmux
+cifs-utils
+
+# Notifications
+libnotify-bin

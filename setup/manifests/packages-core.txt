@@ -1,0 +1,12 @@
+# Core system packages - required before anything else
+# These are essential for the bootstrap process itself
+
+curl
+wget
+git
+git-lfs
+ca-certificates
+gnupg
+lsb-release
+apt-transport-https
+software-properties-common

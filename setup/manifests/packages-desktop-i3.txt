@@ -1,0 +1,11 @@
+# i3 window manager packages (ts3d profile only)
+
+# Window manager
+i3
+i3status
+i3lock
+dmenu
+
+# Wallpaper tools
+feh
+nitrogen

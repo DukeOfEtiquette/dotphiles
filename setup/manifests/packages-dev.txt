@@ -1,0 +1,16 @@
+# Development packages - build toolchain for Maverick
+# Required for rogue profile
+
+# Build essentials
+build-essential
+cmake
+cmake-curses-gui
+make
+g++
+gcc
+
+# Additional dev tools
+tar
+gzip
+ssh
+vim

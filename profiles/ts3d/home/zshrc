@@ -106,7 +106,7 @@ export DOTFILES="$HOME/.everc/dotfiles"
 export DOTPROFILE="ts3d"
 alias dot="cd $DOTFILES"
 alias dots_refresh='dot && ./installDotfiles.sh --profile $DOTPROFILE && source ~/.zshrc && popd'
-alias i3c="vim $DOTFILES/profiles/shared/.config/i3/config"
+alias i3c="vim $DOTFILES/profiles/ts3d/.config/i3/config"
 alias i3s="vim $DOTFILES/profiles/ts3d/.config/i3status/config"
 alias vz="vim $DOTFILES/profiles/ts3d/home/zshrc"
 
