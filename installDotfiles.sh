@@ -254,6 +254,11 @@ function install_terminal () {
 
   # copy these Linux i3 .config to system
   cp "$profile_dir/.config/xfce4/terminal/terminalrc" "$HOME/.config/xfce4/terminal/"
+
+  # xfce4-terminal 1.1+ uses xfconf instead of terminalrc - set encoding via xfconf
+  if command -v xfconf-query &>/dev/null; then
+    xfconf-query -c xfce4-terminal -p /encoding --create -t string -s "UTF-8"
+  fi
 }
 
 # This function installs bin scripts

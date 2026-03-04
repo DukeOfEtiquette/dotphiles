@@ -5,6 +5,7 @@ cd $MAV_SRC
 
 git checkout master;
 git pull;
+git submodule sync --recursive;
 git submodule update --init --recursive;
 git submodule foreach --recursive git checkout master;
 git submodule foreach --recursive git pull;
