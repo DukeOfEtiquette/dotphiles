@@ -13,3 +13,22 @@ git submodule foreach --recursive git pull;
 git submodule update external/ffmpeg
 # Reset SFML submodule
 git submodule update external/SFML
+
+# Pull any standalone clones that aren't registered as submodules of maverick.
+# Registered submodule working trees use a .git FILE (gitlink), so `-type d`
+# naturally excludes them and only catches real standalone repos
+# (e.g. legend/, elite/, and any games cloned directly under them).
+while IFS= read -r -d '' git_dir; do
+    repo_dir="$(dirname "$git_dir")"
+    [ "$repo_dir" = "$MAV_SRC" ] && continue
+    echo "=== Pulling standalone repo: ${repo_dir#$MAV_SRC/} ==="
+    (
+        cd "$repo_dir"
+        git checkout master
+        git pull
+        git submodule sync --recursive
+        git submodule update --init --recursive
+        git submodule foreach --recursive git checkout master
+        git submodule foreach --recursive git pull
+    )
+done < <(find "$MAV_SRC" -type d -name .git -prune -print0)
