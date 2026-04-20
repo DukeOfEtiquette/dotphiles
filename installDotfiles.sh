@@ -259,6 +259,12 @@ function install_terminal () {
   if command -v xfconf-query &>/dev/null; then
     xfconf-query -c xfce4-terminal -p /encoding --create -t string -s "UTF-8"
   fi
+
+  # Run profile-specific xfconf setup if present
+  local setup_script="$profile_dir/setup/xfce4-terminal.sh"
+  if [[ -x "$setup_script" ]]; then
+    "$setup_script"
+  fi
 }
 
 # This function installs bin scripts

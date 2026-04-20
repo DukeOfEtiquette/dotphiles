@@ -1,12 +1,12 @@
 [Configuration]
-FontName=Cascadia Mono Bold 12
+FontName=Cascadia Mono Bold 16
 MiscAlwaysShowTabs=FALSE
 MiscBell=FALSE
 MiscBellUrgent=FALSE
 MiscBordersDefault=TRUE
 MiscCursorBlinks=TRUE
 MiscCursorShape=TERMINAL_CURSOR_SHAPE_UNDERLINE
-MiscDefaultGeometry=150x80
+MiscDefaultGeometry=150x75
 MiscInheritGeometry=FALSE
 MiscMenubarDefault=TRUE
 MiscMouseAutohide=FALSE
