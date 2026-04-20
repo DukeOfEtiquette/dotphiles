@@ -8,6 +8,6 @@ PLATINUM_DEBUG="$ROGUE_ROOT/builds/platinum/debug"
 cd $PLATINUM_DEBUG
 make -j26
 
-ELITE_DEBUG="$ROGUE_ROOT/builds/elite/debug"
-cd $ELITE_DEBUG
+LEGEND_DEBUG="$ROGUE_ROOT/builds/legend/debug"
+cd $LEGEND_DEBUG
 make -j26

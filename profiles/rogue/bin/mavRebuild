@@ -3,12 +3,12 @@
 PLATFORM=''
 
 if [ -z "$1" ]; then
-    echo 'Missing arg, choose (1): --elite or --platinum or --encore'
+    echo 'Missing arg, choose (1): --legend or --platinum or --encore'
     exit 0
 fi
 
-if [ "$1" = '--elite' ]; then
-    PLATFORM=elite
+if [ "$1" = '--legend' ]; then
+    PLATFORM=legend
 fi
 
 if [ "$1" = '--platinum' ]; then
@@ -45,7 +45,7 @@ if [ "$RM_DIR" = "rm" ]; then
     rm -rf $INSTALL_DIR/*
 fi
 
-if [ "$PLATFORM" = "elite" ]; then
+if [ "$PLATFORM" = "legend" ]; then
 
     ccmake \
         -S $SOURCE_DIR \

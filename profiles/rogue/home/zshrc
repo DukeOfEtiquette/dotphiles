@@ -139,7 +139,7 @@ export PATH=$PATH:$ROGUE_ROOT/builds/mav_tools/animation_maker/cram
 export PATH=$PATH:$HOME/.local/bin
 
 # QoL
-alias elite="cd $MAV_SRC/elite"
+alias legend="cd $MAV_SRC/legend"
 alias plat="cd $MAV_SRC/platinum"
 alias encore="cd $MAV_SRC/encore"
 
