@@ -17,7 +17,7 @@ git submodule update external/SFML
 # Pull any standalone clones that aren't registered as submodules of maverick.
 # Registered submodule working trees use a .git FILE (gitlink), so `-type d`
 # naturally excludes them and only catches real standalone repos
-# (e.g. legend/, elite/, and any games cloned directly under them).
+# (e.g. legend/ and any games cloned directly under it).
 while IFS= read -r -d '' git_dir; do
     repo_dir="$(dirname "$git_dir")"
     [ "$repo_dir" = "$MAV_SRC" ] && continue
