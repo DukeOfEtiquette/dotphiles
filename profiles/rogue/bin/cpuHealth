@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+#
+# cpuHealth - quick CPU health report for the rogue workstation (AMD Ryzen 9 5900X).
+#
+# Reads temps from lm-sensors (k10temp + board sensors), load from /proc/loadavg,
+# usage from /proc/stat, and per-core frequency from sysfs. Prints color-coded
+# OK/WARN/CRIT verdicts and exits 0 (all OK), 1 (any WARN), or 2 (any CRIT).
+#
+# Usage:
+#   cpuHealth            one-shot snapshot
+#   cpuHealth --watch    live refresh every 2s (Ctrl-C to exit)
+#   cpuHealth --watch 5  live refresh every 5s
+#
+set -uo pipefail
+
+# ---- common: colors + verdict helper -------------------------------------
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+    C_OK=$'\033[32m'; C_WARN=$'\033[33m'; C_CRIT=$'\033[31m'
+    C_DIM=$'\033[2m'; C_HDR=$'\033[1;36m'; C_RST=$'\033[0m'
+else
+    C_OK=''; C_WARN=''; C_CRIT=''; C_DIM=''; C_HDR=''; C_RST=''
+fi
+
+worst=0   # 0=OK 1=WARN 2=CRIT, tracked across the snapshot
+V=""      # set by verdict() to the colored status string for the last check
+
+# verdict <value> <warn> <crit> -> sets global $V to a colored STATUS and bumps
+# $worst. Must be called as a plain command (NOT in $(...)), else the $worst
+# update happens in a subshell and is lost. Comparison uses awk so floats work.
+verdict() {
+    local val="$1" warn="$2" crit="$3"
+    if [[ "$val" == "n/a" || -z "$val" ]]; then
+        V="${C_DIM}n/a${C_RST}"; return
+    fi
+    local level
+    level=$(awk -v v="$val" -v w="$warn" -v c="$crit" 'BEGIN{
+        if (v+0 >= c+0) print 2; else if (v+0 >= w+0) print 1; else print 0 }')
+    case "$level" in
+        2) (( worst < 2 )) && worst=2; V="${C_CRIT}CRIT${C_RST}" ;;
+        1) (( worst < 1 )) && worst=1; V="${C_WARN}WARN${C_RST}" ;;
+        *) V="${C_OK}OK${C_RST}" ;;
+    esac
+}
+
+# sensor_val <chip-glob> <key> -> the *_input value for a sensors -u key, or "n/a".
+# e.g. sensor_val 'k10temp-*' 'Tctl'  ->  47.625
+sensor_val() {
+    sensors -u "$1" 2>/dev/null | awk -v key="$2" '
+        $0 ~ "^"key":" { found=1; next }
+        found && /_input:/ { print $2; exit }
+        found && /^[^ ]/   { found=0 }'
+}
+
+# cpu_usage -> aggregate busy% over a short sample window (one decimal), or "n/a".
+cpu_usage() {
+    read -r _ u1 n1 s1 i1 w1 q1 sq1 _ < /proc/stat || { echo "n/a"; return; }
+    sleep 0.3
+    read -r _ u2 n2 s2 i2 w2 q2 sq2 _ < /proc/stat || { echo "n/a"; return; }
+    awk -v u1="$u1" -v n1="$n1" -v s1="$s1" -v i1="$i1" -v w1="$w1" -v q1="$q1" -v sq1="$sq1" \
+        -v u2="$u2" -v n2="$n2" -v s2="$s2" -v i2="$i2" -v w2="$w2" -v q2="$q2" -v sq2="$sq2" 'BEGIN{
+            idle = (i2+w2) - (i1+w1)
+            total = (u2+n2+s2+i2+w2+q2+sq2) - (u1+n1+s1+i1+w1+q1+sq1)
+            if (total <= 0) { print "n/a"; exit }
+            printf "%.1f", 100*(total-idle)/total }'
+}
+
+# max_freq_mhz -> highest current per-core frequency in MHz, or "n/a".
+max_freq_mhz() {
+    local max=0 f
+    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq; do
+        [[ -r "$f" ]] || continue
+        local v; v=$(< "$f")
+        (( v > max )) && max=$v
+    done
+    (( max > 0 )) && echo $(( max / 1000 )) || echo "n/a"
+}
+
+# ---- report ---------------------------------------------------------------
+report() {
+    worst=0
+    local model ncpu tctl tccd1 tccd2 cpu_board chipset mb vcore amps load1 load5 load15 usage freq
+    model=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
+    ncpu=$(nproc)
+    tctl=$(sensor_val 'k10temp-*' 'Tctl')
+    tccd1=$(sensor_val 'k10temp-*' 'Tccd1')
+    tccd2=$(sensor_val 'k10temp-*' 'Tccd2')
+    cpu_board=$(sensor_val 'asusec-*' 'CPU')
+    chipset=$(sensor_val 'asusec-*' 'Chipset')
+    mb=$(sensor_val 'asusec-*' 'Motherboard')
+    vcore=$(sensor_val 'asusec-*' 'CPU Core')
+    read -r load1 load5 load15 _ < /proc/loadavg
+    usage=$(cpu_usage)
+    freq=$(max_freq_mhz)
+
+    printf '%sCPU%s  %s  (%s threads)\n' "$C_HDR" "$C_RST" "${model:-unknown}" "$ncpu"
+    verdict "$tctl" 75 85
+    printf '  %-14s %7s °C   [%s]\n' "Tctl"        "${tctl:-n/a}"  "$V"
+    printf '  %-14s %7s °C   %sTccd1%s\n' "die ccd1" "${tccd1:-n/a}" "$C_DIM" "$C_RST"
+    printf '  %-14s %7s °C   %sTccd2%s\n' "die ccd2" "${tccd2:-n/a}" "$C_DIM" "$C_RST"
+    [[ -n "$cpu_board" ]] && printf '  %-14s %7s °C   %sboard%s\n' "CPU (board)" "$cpu_board" "$C_DIM" "$C_RST"
+    [[ -n "$chipset"   ]] && printf '  %-14s %7s °C   %sboard%s\n' "chipset"     "$chipset"   "$C_DIM" "$C_RST"
+    [[ -n "$mb"        ]] && printf '  %-14s %7s °C   %sboard%s\n' "motherboard" "$mb"        "$C_DIM" "$C_RST"
+    [[ -n "$vcore"     ]] && printf '  %-14s %7s V    %sVcore%s\n' "core voltage" "$vcore"    "$C_DIM" "$C_RST"
+
+    # load1 vs core count: warn at 0.8x, crit at 1.5x
+    local warn crit
+    warn=$(awk -v n="$ncpu" 'BEGIN{printf "%.2f", n*0.8}')
+    crit=$(awk -v n="$ncpu" 'BEGIN{printf "%.2f", n*1.5}')
+    verdict "$load1" "$warn" "$crit"
+    printf '  %-14s %7s      [%s]  %s(5m %s, 15m %s)%s\n' \
+        "load (1m)" "$load1" "$V" "$C_DIM" "$load5" "$load15" "$C_RST"
+    printf '  %-14s %6s%%      %sinformational%s\n' "usage" "${usage:-n/a}" "$C_DIM" "$C_RST"
+    printf '  %-14s %6s MHz   %speak core clock%s\n' "freq" "${freq:-n/a}" "$C_DIM" "$C_RST"
+}
+
+# ---- main / watch ---------------------------------------------------------
+case "${1:-}" in
+    --watch|-w)
+        interval="${2:-2}"
+        trap 'printf "\033[?25h"; exit 0' INT TERM   # restore cursor on exit
+        printf '\033[?25l'                            # hide cursor
+        while true; do
+            printf '\033[H\033[2J'                    # home + clear
+            printf '%scpuHealth --watch (every %ss, Ctrl-C to quit)%s\n\n' "$C_DIM" "$interval" "$C_RST"
+            report
+            sleep "$interval"
+        done
+        ;;
+    -h|--help)
+        awk 'NR==1{next} /^#/{sub(/^# ?/,"");print;next} {exit}' "$0"
+        ;;
+    *)
+        report
+        exit "$worst"
+        ;;
+esac

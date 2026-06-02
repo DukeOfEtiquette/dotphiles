@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# sysHealth - combined CPU + GPU health report for the rogue workstation.
+#             Thin wrapper around cpuHealth and gpuHealth.
+#
+# Usage:
+#   sysHealth            one-shot snapshot of both CPU and GPU
+#   sysHealth --watch    live refresh every 2s (Ctrl-C to exit)
+#   sysHealth --watch 5  live refresh every 5s
+#
+# Exit code (snapshot mode) = worst of cpuHealth / gpuHealth:
+#   0 all OK, 1 any WARN, 2 any CRIT.
+#
+set -uo pipefail
+
+# Resolve sibling scripts whether run from PATH or the repo bin dir.
+here=$(cd "$(dirname "$0")" && pwd)
+cpu="$here/cpuHealth"
+gpu="$here/gpuHealth"
+[[ -x "$cpu" ]] || cpu=$(command -v cpuHealth || echo "$cpu")
+[[ -x "$gpu" ]] || gpu=$(command -v gpuHealth || echo "$gpu")
+
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+    C_HDR=$'\033[1;35m'; C_DIM=$'\033[2m'; C_RST=$'\033[0m'
+else
+    C_HDR=''; C_DIM=''; C_RST=''
+fi
+
+# ---- watch: delegate to a single refreshing loop -------------------------
+case "${1:-}" in
+    --watch|-w)
+        interval="${2:-2}"
+        trap 'printf "\033[?25h"; exit 0' INT TERM
+        printf '\033[?25l'
+        while true; do
+            printf '\033[H\033[2J'
+            printf '%ssysHealth --watch (every %ss, Ctrl-C to quit)%s\n\n' "$C_DIM" "$interval" "$C_RST"
+            "$cpu"; echo
+            "$gpu"
+            sleep "$interval"
+        done
+        ;;
+    -h|--help)
+        awk 'NR==1{next} /^#/{sub(/^# ?/,"");print;next} {exit}' "$0"
+        ;;
+    *)
+        "$cpu"; cpu_rc=$?
+        echo
+        "$gpu"; gpu_rc=$?
+        rc=$(( cpu_rc > gpu_rc ? cpu_rc : gpu_rc ))
+        echo
+        case "$rc" in
+            0) printf '%soverall: OK%s\n'   "$C_HDR" "$C_RST" ;;
+            1) printf '%soverall: WARN%s\n' "$C_HDR" "$C_RST" ;;
+            *) printf '%soverall: CRIT%s\n' "$C_HDR" "$C_RST" ;;
+        esac
+        exit "$rc"
+        ;;
+esac
