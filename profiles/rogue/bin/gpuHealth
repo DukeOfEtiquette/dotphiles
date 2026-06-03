@@ -109,14 +109,17 @@ report() {
         printf '  %-14s %7s\n' "fan" "n/a"
     fi
 
-    # power vs cap: warn 90%, crit 100% of cap
+    # power vs cap: warn 105%, crit 115% — card normally sits AT cap (power-throttling),
+    # so being at the limit is informational; only flag a genuinely runaway reading.
     if [[ -n "$power" && -n "$cap" ]]; then
-        local pw pc
-        pw=$(awk -v c="$cap" 'BEGIN{printf "%.2f", c*0.9}')
-        pc=$(awk -v c="$cap" 'BEGIN{printf "%.2f", c}')
+        local pw pc note=""
+        pw=$(awk -v c="$cap" 'BEGIN{printf "%.2f", c*1.05}')
+        pc=$(awk -v c="$cap" 'BEGIN{printf "%.2f", c*1.15}')
+        # mark the expected "pinned to the power cap" state so [OK] doesn't look idle
+        awk -v p="$power" -v c="$cap" 'BEGIN{exit !(p+0 >= c*0.95)}' && note=" ${C_DIM}(at cap)${C_RST}"
         verdict "$power" "$pw" "$pc"
-        printf '  %-14s %6s W    [%s]  %scap %.0f W%s\n' \
-            "power (PPT)" "$power" "$V" "$C_DIM" "$cap" "$C_RST"
+        printf '  %-14s %6s W    [%s]  %scap %.0f W%s%s\n' \
+            "power (PPT)" "$power" "$V" "$C_DIM" "$cap" "$C_RST" "$note"
     else
         printf '  %-14s %6s W\n' "power (PPT)" "${power:-n/a}"
     fi
