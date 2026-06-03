@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a dotfiles management system for Linux workstations using zsh, i3wm, and xfce4-terminal. The repository manages configuration files across multiple machine profiles.
+This is a dotfiles management system for Linux workstations using zsh, i3wm, and xfce4-terminal. The repository manages configuration files across multiple machine profiles. (The **rogue** workstation has since migrated from i3 to a GNOME/mutter session — see its profile notes below.)
 
 ## Key Commands
 
@@ -49,9 +49,11 @@ Note: i3status configs remain profile-specific as they reference hardware-specif
 ### Profile-Specific Notes
 
 **rogue:**
+- Now runs a **GNOME/mutter** desktop session (migrated from i3). Desktop tooling is GNOME-based — e.g. `bin/toggleBG` switches the wallpaper via `gsettings org.gnome.desktop.background`. The i3 holdovers still shipped for this profile (`.config/i3status/` and the `i3c`/`i3s` aliases in `home/zshrc`) are legacy from the i3 era.
 - Has `zprofile` for login shell initialization (other profiles use only `zshrc`)
 - Uses async git prompt disabled: `zstyle ':omz:alpha:lib:git' async-prompt no`
 - Contains Maverick build scripts (mavBuild, mavPull, mavRebuild, etc.)
+- Has CPU/GPU health-check scripts (`bin/cpuHealth`, `bin/gpuHealth`, and the `bin/sysHealth` wrapper) for the Ryzen 9 5900X + Radeon RX 460/560
 
 **ts3d:**
 - Focused on TS3D development with specialized clone/docker scripts
