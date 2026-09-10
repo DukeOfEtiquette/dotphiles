@@ -139,6 +139,9 @@ export CLAUDE_MULTIVERSE_PATH="/home/adam/claude_multiverse"
 export PATH=$PATH:$ROGUE_ROOT/builds/mav_tools/animation_maker/cram
 export PATH=$PATH:$HOME/.local/bin
 
+# claude
+export TMPDIR=/home/adam/.cache/claude-tmp
+
 # QoL
 alias legend="cd $MAV_SRC/legend"
 alias plat="cd $MAV_SRC/platinum"
