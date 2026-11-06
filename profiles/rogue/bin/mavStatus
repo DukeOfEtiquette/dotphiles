@@ -1,0 +1,187 @@
+#!/bin/bash
+# mavStatus - is my Maverick tree in sync with origin, with nothing unpushed or out of place?
+#
+# Walks every repo under the Maverick tree (maverick, cabinets, games, standalone clones and
+# their submodules) and lists only the ones with a real problem. It does NOT report a game
+# being ahead of its cabinet's pin: mavPull puts every game on latest master by design.
+#
+# Usage: mavStatus [--fetch]
+#   --fetch   run `git fetch` in every repo first (default: compare against the last fetch,
+#             i.e. your last mavPull)
+#
+# Known, accepted findings go in $MAVSTATUS_EXPECTED (default ~/.config/mavStatus/expected),
+# one per line:   <repo> <path-glob | check>
+#   repo   path relative to the maverick root ("." for maverick itself)
+#   check  one of: branch ahead behind no-remote no-upstream merge leftover drift
+#   e.g.   encore            config/demo/windows.json
+#          legend            ClassicKeno_bckup/
+#          legend/ClassicKeno no-remote
+
+set -uo pipefail
+
+MAV_SRC="${MAV_SRC:-$HOME/rogue/src/maverick}"
+EXPECTED="${MAVSTATUS_EXPECTED:-$HOME/.config/mavStatus/expected}"
+EXTERNALS=(external/assimp external/ffmpeg external/SFML)
+
+FETCH=false
+case "${1:-}" in
+    --fetch) FETCH=true ;;
+    "") ;;
+    -h|--help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "mavStatus: unknown option '$1' (try --help)" >&2; exit 2 ;;
+esac
+
+cd "$MAV_SRC" || { echo "mavStatus: cannot cd to $MAV_SRC" >&2; exit 2; }
+
+# ---- expected-findings list -------------------------------------------------------------
+declare -a EXP_REPO=() EXP_PAT=()
+if [ -f "$EXPECTED" ]; then
+    while read -r r p _; do
+        [[ -z "${r:-}" || "$r" == \#* || -z "${p:-}" ]] && continue
+        EXP_REPO+=("$r"); EXP_PAT+=("$p")
+    done < "$EXPECTED"
+fi
+
+is_expected() {  # <repo> <path-or-check>
+    local i
+    for i in "${!EXP_REPO[@]}"; do
+        [[ "${EXP_REPO[$i]}" == "$1" ]] || continue
+        # shellcheck disable=SC2053  # glob match on purpose
+        [[ "$2" == ${EXP_PAT[$i]} ]] && return 0
+    done
+    return 1
+}
+
+# ---- enumerate repos --------------------------------------------------------------------
+repos=(".")
+while IFS= read -r r; do repos+=("$r"); done \
+    < <(git submodule foreach --quiet --recursive 'echo "$displaypath"')
+# Standalone clones (a real .git directory, not a gitlink file) and their own submodules
+while IFS= read -r -d '' git_dir; do
+    r="$(dirname "$git_dir")"; r="${r#./}"
+    [ "$r" = "." ] && continue
+    repos+=("$r")
+    while IFS= read -r s; do repos+=("$r/$s"); done \
+        < <(git -C "$r" submodule foreach --quiet --recursive 'echo "$displaypath"' 2>/dev/null)
+done < <(find . -type d -name .git -prune -print0)
+mapfile -t repos < <(printf '%s\n' "${repos[@]}" | sort -u)
+
+if $FETCH; then
+    echo "Fetching ${#repos[@]} repos..."
+    printf '%s\0' "${repos[@]}" | xargs -0 -P 8 -I{} sh -c \
+        'git -C "{}" remote | grep -q . && { git -C "{}" fetch --quiet 2>/dev/null || echo "  fetch failed: {}"; }'
+fi
+
+# ---- output helpers ---------------------------------------------------------------------
+if [ -t 1 ]; then
+    C_OK=$'\e[32m' C_BAD=$'\e[31m' C_DIM=$'\e[2m' C_OFF=$'\e[0m'
+else
+    C_OK="" C_BAD="" C_DIM="" C_OFF=""
+fi
+width=8   # "maverick"
+for r in "${repos[@]}"; do [ ${#r} -gt $width ] && width=${#r}; done
+
+# ---- check each repo --------------------------------------------------------------------
+# Each repo prints one line as it is checked, followed by any issues indented beneath it
+problems=0
+bad_repos=0
+issues=()
+expected_hits=0
+report() {  # <repo> <key> <message>
+    if is_expected "$1" "$2"; then expected_hits=$((expected_hits + 1)); return; fi
+    issues+=("$3")
+}
+
+is_external() { local e; for e in "${EXTERNALS[@]}"; do [ "$1" = "$e" ] && return 0; done; return 1; }
+
+print_repo() {  # <repo> <state>
+    local name="$1" state="$2" note="" i
+    [ "$name" = "." ] && name="maverick"
+    [ "$expected_hits" -gt 0 ] && note="  ${C_DIM}(${expected_hits} expected)${C_OFF}"
+    if [ ${#issues[@]} -eq 0 ]; then
+        printf '%s✓%s %-*s  %s%s\n' "$C_OK" "$C_OFF" "$width" "$name" "$state" "$note"
+    else
+        printf '%s✗ %-*s%s  %s%s\n' "$C_BAD" "$width" "$name" "$C_OFF" "$state" "$note"
+        for i in "${issues[@]}"; do printf '      %s- %s%s\n' "$C_BAD" "$i" "$C_OFF"; done
+        problems=$((problems + ${#issues[@]}))
+        bad_repos=$((bad_repos + 1))
+    fi
+}
+
+for r in "${repos[@]}"; do
+    issues=(); expected_hits=0; state=""
+    gd="$(git -C "$r" rev-parse --absolute-git-dir 2>/dev/null)" || {
+        report "$r" missing "not a git checkout (submodule not initialised?)"; print_repo "$r" "?"; continue; }
+
+    # Interrupted operations (today's half-finished merge would have shown up here)
+    for op in MERGE_HEAD:merge rebase-merge:rebase rebase-apply:rebase CHERRY_PICK_HEAD:cherry-pick REVERT_HEAD:revert; do
+        [ -e "$gd/${op%%:*}" ] && report "$r" merge "${op#*:} in progress"
+    done
+
+    if is_external "$r"; then
+        # Externals are meant to be detached at maverick's pinned commit
+        state="pinned @ $(git -C "$r" rev-parse --short HEAD)"
+        case "$(git submodule status "$r" | cut -c1)" in
+            +) state="detached @ $(git -C "$r" rev-parse --short HEAD)"
+               report "$r" drift "not at maverick's pinned commit (run: git submodule update $r)" ;;
+            -) report "$r" drift "not initialised" ;;
+        esac
+    else
+        branch="$(git -C "$r" symbolic-ref --short -q HEAD)"
+        if [ -z "$branch" ]; then
+            state="detached @ $(git -C "$r" rev-parse --short HEAD)"
+            report "$r" branch "detached HEAD at $(git -C "$r" rev-parse --short HEAD)"
+        else
+            state="$branch"
+            [ "$branch" != master ] && report "$r" branch "on branch '$branch', not master"
+        fi
+
+        if [ -z "$(git -C "$r" remote)" ]; then
+            state+=", no remote"
+            report "$r" no-remote "no remote configured (mavPull cannot update it)"
+        elif [ -n "$branch" ]; then
+            if up="$(git -C "$r" rev-parse --abbrev-ref -q "$branch@{u}" 2>/dev/null)"; then
+                read -r behind ahead < <(git -C "$r" rev-list --left-right --count "$up...$branch")
+                if [ "$ahead" -eq 0 ] && [ "$behind" -eq 0 ]; then
+                    state+=" = $up"
+                else
+                    state+=" vs $up: +$ahead -$behind"
+                fi
+                [ "$ahead" -gt 0 ]  && report "$r" ahead  "$branch is $ahead commit(s) ahead of $up (unpushed): $(git -C "$r" log -1 --format='%h %s' "$branch")"
+                [ "$behind" -gt 0 ] && report "$r" behind "$branch is $behind commit(s) behind $up (run mavPull)"
+            else
+                state+=", no upstream"
+                report "$r" no-upstream "$branch has no upstream branch"
+            fi
+        fi
+    fi
+
+    # Working-tree changes; submodule pointer changes are ignored (that's the pin gap)
+    while IFS= read -r line; do
+        code="${line:0:2}"; p="${line:3}"
+        if [ "$code" = "??" ] && [ -d "$r/$p" ]; then
+            [ -d "$r/$p/.git" ] && continue                      # standalone clone, checked on its own
+            if [ -f "$r/$p/.git" ]; then
+                report "$r" "$p" "leftover folder from a removed submodule: $p"
+                continue
+            fi
+        fi
+        case "$code" in
+            "??") report "$r" "$p" "untracked: $p" ;;
+            UU|AA|DD|AU|UA|DU|UD) report "$r" "$p" "CONFLICT: $p" ;;
+            *) report "$r" "$p" "modified ($code): $p" ;;
+        esac
+    done < <(git -C "$r" status --porcelain --ignore-submodules=all)
+
+    print_repo "$r" "$state"
+done
+
+echo
+if [ "$problems" -eq 0 ]; then
+    echo "${C_OK}All ${#repos[@]} repos in sync with origin.${C_OFF}"
+else
+    echo "${C_BAD}$problems issue(s) in $bad_repos of ${#repos[@]} repos.${C_OFF}"
+fi
+[ -f "$EXPECTED" ] && echo "${C_DIM}Expected findings listed in $EXPECTED are hidden and counted as (N expected).${C_OFF}"
+$FETCH || echo "${C_DIM}Compared against the last fetch; use --fetch to refresh first.${C_OFF}"
+[ "$problems" -eq 0 ]

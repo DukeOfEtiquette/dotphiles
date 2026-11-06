@@ -1,18 +1,40 @@
 #!/bin/bash
 
 MAV_SRC="$HOME/rogue/src/maverick"
-cd $MAV_SRC
+cd "$MAV_SRC" || { echo "mavPull: cannot cd to $MAV_SRC" >&2; exit 1; }
 
-git checkout master;
-git pull;
+# Per-repo failures are appended here (as well as printed) and summarised at the end.
+# Exported so the `git submodule foreach` shells can see it.
+export MAVPULL_FAILS="$(mktemp -t mavPull-fails.XXXXXX)"
+trap 'rm -f "$MAVPULL_FAILS"' EXIT
+
+# The top-level checkout and pull must succeed: if the merge stops on a conflict,
+# every submodule step below would run against a half-merged tree
+if ! git checkout master; then
+    echo
+    echo "!!! mavPull ABORTED: 'git checkout master' failed in maverick. Nothing else was run."
+    exit 1
+fi
+# Recursing into legend's standalone game clones errors and aborts the merge;
+# submodules are updated explicitly below instead
+if ! git pull --no-recurse-submodules; then
+    echo
+    echo "!!! mavPull ABORTED: 'git pull' failed in maverick (merge conflict or network error)."
+    echo "!!! Resolve it with 'git status' in $MAV_SRC, then rerun mavPull. No submodules were touched."
+    exit 1
+fi
+
 git submodule sync --recursive;
 git submodule update --init --recursive;
-git submodule foreach --recursive git checkout master;
-git submodule foreach --recursive git pull;
+# `foreach` aborts on the first non-zero exit, so tolerate per-submodule failures
+git submodule foreach --recursive 'git checkout master || echo "CHECKOUT FAILED: $displaypath" | tee -a "$MAVPULL_FAILS"';
+git submodule foreach --recursive 'git pull || echo "PULL FAILED: $displaypath" | tee -a "$MAVPULL_FAILS"';
 # Reset ffmpeg submodule is AssetCore
 git submodule update external/ffmpeg
 # Reset SFML submodule
 git submodule update external/SFML
+# Reset assimp submodule
+git submodule update external/assimp
 
 # Pull any standalone clones that aren't registered as submodules of maverick.
 # Registered submodule working trees use a .git FILE (gitlink), so `-type d`
@@ -21,14 +43,28 @@ git submodule update external/SFML
 while IFS= read -r -d '' git_dir; do
     repo_dir="$(dirname "$git_dir")"
     [ "$repo_dir" = "$MAV_SRC" ] && continue
-    echo "=== Pulling standalone repo: ${repo_dir#$MAV_SRC/} ==="
+    rel="${repo_dir#$MAV_SRC/}"
+    echo "=== Pulling standalone repo: $rel ==="
     (
         cd "$repo_dir"
-        git checkout master
-        git pull
+        git checkout master || echo "CHECKOUT FAILED: $rel" | tee -a "$MAVPULL_FAILS"
+        git pull || echo "PULL FAILED: $rel" | tee -a "$MAVPULL_FAILS"
         git submodule sync --recursive
         git submodule update --init --recursive
-        git submodule foreach --recursive git checkout master
-        git submodule foreach --recursive git pull
+        # $displaypath is relative to this standalone repo, so prefix it with $rel
+        export rel
+        git submodule foreach --recursive 'git checkout master || echo "CHECKOUT FAILED: $rel/$displaypath" | tee -a "$MAVPULL_FAILS"'
+        git submodule foreach --recursive 'git pull || echo "PULL FAILED: $rel/$displaypath" | tee -a "$MAVPULL_FAILS"'
     )
 done < <(find "$MAV_SRC" -type d -name .git -prune -print0)
+
+# Summarise per-repo failures, which otherwise scroll past in the output above
+echo
+echo "=============================== mavPull summary ==============================="
+if [ ! -s "$MAVPULL_FAILS" ]; then
+    echo "All checkouts and pulls succeeded."
+else
+    echo "$(sort -u "$MAVPULL_FAILS" | wc -l) failure(s) - scroll up for each repo's git error:"
+    sort -u "$MAVPULL_FAILS" | sed 's/^/  /'
+    exit 1
+fi
